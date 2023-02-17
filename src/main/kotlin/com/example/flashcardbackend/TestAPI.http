@@ -12,6 +12,5 @@ Content-Type: application/json
   "decks": []
 }
 
-
 ### Get all the collections
 GET http://localhost:8080/collection
