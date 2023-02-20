@@ -13,7 +13,8 @@ CREATE TABLE IF NOT EXISTS deck (
     deck_name VARCHAR(50) NOT NULL,
     description VARCHAR(250),
     created_at TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP NOT NULL
+    updated_at TIMESTAMP NOT NULL,
+    CONSTRAINT fk_deck_collection FOREIGN KEY (collection_id) REFERENCES collection (id)
 );
 
 CREATE TABLE IF NOT EXISTS card_type (
@@ -32,7 +33,7 @@ CREATE TABLE IF NOT EXISTS card_tag (
 
 CREATE TABLE IF NOT EXISTS card_content (
      id INTEGER PRIMARY KEY AUTO_INCREMENT NOT NULL,
-     is_front boolean DEFAULT 'true' NOT NULL,
+     card_content_type enum ('FRONT', 'BACK')  NOT NULL,
      text VARCHAR(2000) NOT NULL,
      media_url VARCHAR(1000),
      created_at TIMESTAMP NOT NULL,
