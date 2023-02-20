@@ -16,7 +16,7 @@ import java.time.LocalDateTime
 @Table(name = "collection")
 class DeckCollection(
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     val id: Int,
 
@@ -33,7 +33,7 @@ class DeckCollection(
     val updatedAt: LocalDateTime,
 
     @JoinColumn(name = "collection_id")
-    @OneToMany(fetch = FetchType.EAGER, cascade = [CascadeType.ALL])
+    @OneToMany(fetch = FetchType.LAZY, cascade = [CascadeType.ALL])
     val decks: List<Deck>
 )
 
@@ -41,7 +41,7 @@ class DeckCollection(
 @Table(name = "deck")
 class Deck(
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     val id: Int,
 

@@ -6,7 +6,7 @@ import jakarta.persistence.*
 @Table(name = "flashcard")
 class Flashcard(
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     val id: Int,
 )
@@ -15,7 +15,7 @@ class Flashcard(
 @Table(name = "comment")
 class Comment(
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     val id: Int,
 
