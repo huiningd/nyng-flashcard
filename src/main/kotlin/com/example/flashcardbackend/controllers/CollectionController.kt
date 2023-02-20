@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-class CollectionResource(val service: CollectionService) {
+class CollectionController(val service: CollectionService) {
     @GetMapping("/collection")
     fun index(): MutableIterable<DeckCollection> = service.getCollections()
 
