@@ -1,17 +1,14 @@
 
-### Post "Bonjour!"
+### Post a deck group
 
-POST http://localhost:8080/collection
+POST http://localhost:8080/deckgroup
 Content-Type: application/json
 
 {
-  "collectionName": "Bonjour!",
-  "description": "This is a sunny day",
-  "createdAt": "2023-01-01T10:00:00",
-  "updatedAt": "2023-01-01T12:00:00",
-  "decks": []
+  "name": "Bonjour!",
+  "description": "This is a sunny day"
 }
 
 
-### Get all the collections
-GET http://localhost:8080/collection
+### Get all the deck groups
+GET http://localhost:8080/deckgroup
