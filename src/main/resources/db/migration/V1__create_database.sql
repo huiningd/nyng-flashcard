@@ -1,7 +1,7 @@
 
-CREATE TABLE IF NOT EXISTS collection (
+CREATE TABLE IF NOT EXISTS deck_group (
     id INTEGER PRIMARY KEY AUTO_INCREMENT NOT NULL,
-    collection_name VARCHAR(50) NOT NULL,
+    group_name VARCHAR(50) NOT NULL,
     description VARCHAR(250),
     created_at TIMESTAMP DEFAULT NOW() NOT NULL,
     updated_at TIMESTAMP DEFAULT NOW() NOT NULL
@@ -9,12 +9,12 @@ CREATE TABLE IF NOT EXISTS collection (
 
 CREATE TABLE IF NOT EXISTS deck (
     id INTEGER PRIMARY KEY AUTO_INCREMENT NOT NULL,
-    collection_id INTEGER NOT NULL,
+    group_id INTEGER NOT NULL,
     deck_name VARCHAR(50) NOT NULL,
     description VARCHAR(250),
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL,
-    CONSTRAINT fk_deck_collection FOREIGN KEY (collection_id) REFERENCES collection (id)
+    CONSTRAINT fk_deck_group FOREIGN KEY (group_id) REFERENCES deck_group (id)
 );
 
 CREATE TABLE IF NOT EXISTS card_type (

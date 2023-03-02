@@ -24,12 +24,12 @@ class DeckGroupRowMapper : RowMapper<DeckGroupListItem> {
 class DeckGroupRepository(@Autowired val jdbcTemplate: JdbcTemplate) {
 
     fun findAll(): List<DeckGroupListItem> {
-        return jdbcTemplate.query("select * from collection", DeckGroupRowMapper())
+        return jdbcTemplate.query("select * from deck_group", DeckGroupRowMapper())
     }
 
     fun insert(deckGroup: DeckGroupCreate): Int {
         return jdbcTemplate.update(
-            "insert into collection (collection_name, description) values(?,?)",
+            "insert into deck_group (group_name, description) values(?,?)",
             deckGroup.name,
             deckGroup.description,
         )
@@ -37,7 +37,7 @@ class DeckGroupRepository(@Autowired val jdbcTemplate: JdbcTemplate) {
 
     fun update(deckGroup: DeckGroupUpdate): Int {
         return jdbcTemplate.update(
-            "insert into collection (collection_name, description) values(?,?) where id = ?",
+            "insert into deck_group (group_name, description) values(?,?) where id = ?",
             deckGroup.name,
             deckGroup.description,
             deckGroup.id,
@@ -45,11 +45,11 @@ class DeckGroupRepository(@Autowired val jdbcTemplate: JdbcTemplate) {
     }
 
     fun deleteById(id: Int): Int {
-        return jdbcTemplate.update("delete collection where id = ?", id)
+        return jdbcTemplate.update("delete deck_group where id = ?", id)
     }
 
     fun findById(id: Int): DeckGroup? {
-        // TODO: implement this
+        // TODO: return deckGroup with list of decks
         return null
     }
 }
