@@ -1,14 +1,95 @@
 
 ### Post a deck group
-
-POST http://localhost:8080/deckgroup
+POST http://localhost:8080/deckgroups
 Content-Type: application/json
 
 {
-  "name": "Bonjour!",
-  "description": "This is a sunny day"
+  "name": "Finnished",
+  "description": "Learn Finnish with Finnished"
+}
+
+
+### Post a deck group with empty name (should result in VALIDATION_FAILED)
+POST http://localhost:8080/deckgroups
+Content-Type: application/json
+
+{
+  "name": "",
+  "description": "This is a rainy day"
 }
 
 
 ### Get all the deck groups
-GET http://localhost:8080/deckgroup
+GET http://localhost:8080/deckgroups
+
+
+### Get a deck group by id
+GET http://localhost:8080/deckgroups/1
+
+
+### Post a deck
+POST http://localhost:8080/decks
+Content-Type: application/json
+
+{
+  "deckGroupId": 1,
+  "name": "Finnished 1",
+  "description": "Deck 1 of learning Finnish with Finnished"
+}
+
+### Post the 2nd deck
+POST http://localhost:8080/decks
+Content-Type: application/json
+
+{
+  "deckGroupId": 1,
+  "name": "Suomea Suomekis 1",
+  "description": "Deck 1 of learning Finnish with Suomea Suomekis"
+}
+
+
+### Get all the decks
+GET http://localhost:8080/decks
+
+
+### Get a deck by id
+GET http://localhost:8080/decks/1
+
+
+### Post a flash card
+POST http://localhost:8080/flashcards
+Content-Type: application/json
+
+{
+  "deckId": 1,
+  "front": {
+    "text": "vaatia. vaatimus."
+  },
+  "back": {
+    "text": "demand"
+  }
+}
+
+
+### Post 2nd flash card
+POST http://localhost:8080/flashcards
+Content-Type: application/json
+
+{
+  "deckId": 1,
+  "front": {
+    "text": "sunny sunny day"
+  },
+  "back": {
+    "text": "rainy rainy night"
+  }
+}
+
+
+### Get all flashcards
+GET http://localhost:8080/flashcards
+
+
+### Get a flashcard by id
+GET http://localhost:8080/flashcards/2
+

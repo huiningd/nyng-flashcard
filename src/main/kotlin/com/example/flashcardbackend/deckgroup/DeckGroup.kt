@@ -1,15 +1,23 @@
 package com.example.flashcardbackend.deckgroup
 
-import com.example.flashcardbackend.deck.Deck
+import com.example.flashcardbackend.deck.DeckListItem
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Positive
 
 data class DeckGroup(
-    val id: Int,
     val name: String,
     val description: String?,
-    val decks: List<Deck>,
+    val decks: MutableList<DeckListItem>,
 )
+
+data class DeckGroupDTO(
+    val name: String,
+    val description: String?,
+    val decks: MutableList<DeckListItem>,
+)
+
+fun DeckGroup.toDeckGroupDTO(): DeckGroupDTO =
+    DeckGroupDTO(name = this.name, description = this.description, decks = this.decks)
 
 data class DeckGroupCreateDTO(
     @field:NotBlank(message = "The deck group name is required.")
