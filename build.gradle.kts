@@ -23,7 +23,9 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-    implementation("org.flywaydb:flyway-core:9.8.1")
+
+    implementation("org.flywaydb:flyway-mysql")
+    implementation("org.mariadb.jdbc:mariadb-java-client:3.1.2")
 
     // error responses for REST APIs build with Spring Boot.
     implementation("io.github.wimdeblauwe:error-handling-spring-boot-starter:4.1.0")

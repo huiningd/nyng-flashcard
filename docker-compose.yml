@@ -1,0 +1,20 @@
+version: "3.9"
+
+services:
+  mariadb:
+    image: mariadb:latest
+    restart: always
+    env_file: ./.env
+    environment:
+      - MYSQL_DATABASE=${FLASHCARD_DB_DATABASE}
+      - MYSQL_ROOT_PASSWORD=${FLASHCARD_DB_ROOT_PASSWORD}
+      - MYSQL_USER=${FLASHCARD_DB_USER}
+      - MYSQL_PASSWORD=${FLASHCARD_DB_PASSWORD}
+    ports:
+      - ${FLASHCARD_DB_LOCAL_PORT}:${FLASHCARD_DB_DOCKER_PORT}
+    volumes:
+      - mariadb-volume:/var/lib/mysql
+
+volumes:
+  mariadb-volume:
+    driver: local
