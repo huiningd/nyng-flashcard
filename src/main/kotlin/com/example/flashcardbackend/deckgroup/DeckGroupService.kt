@@ -9,6 +9,9 @@ class DeckGroupService(val repository: DeckGroupRepository) {
     @Transactional(readOnly = true)
     fun findDeckGroups(): List<DeckGroupListItemDTO> = repository.findAll().map { it.toDeckGroupListItemDTO() }
 
+    @Transactional(readOnly = true)
+    fun findDeckGroupById(id: Int): DeckGroupDTO? = repository.findById(id)?.toDeckGroupDTO()
+
     @Transactional
     fun create(deckGroupCreateDTO: DeckGroupCreateDTO) =
         repository.insert(deckGroupCreateDTO.toDeckGroupCreate())
