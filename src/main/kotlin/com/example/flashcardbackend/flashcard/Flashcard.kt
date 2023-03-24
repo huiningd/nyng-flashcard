@@ -88,7 +88,7 @@ data class FlashcardUpdateDTO(
     val front: CardContentUpdateDTO?,
     val back: CardContentUpdateDTO?,
     val comment: String?,
-    val tags: List<CardTagId>?,
+    val tags: List<CardTagId>?, // TODO remove tags from FlashcardUpdateDTO, implement tag API
 )
 
 data class FlashcardUpdate(

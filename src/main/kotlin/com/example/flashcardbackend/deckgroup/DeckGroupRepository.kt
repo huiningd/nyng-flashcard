@@ -10,8 +10,8 @@ import org.springframework.transaction.annotation.Transactional
 import java.sql.ResultSet
 import java.sql.SQLException
 
-@Transactional
 @Repository
+@Transactional
 class DeckGroupRepository(@Autowired val jdbcTemplate: JdbcTemplate) {
 
     fun findAll(): List<DeckGroupListItem> {

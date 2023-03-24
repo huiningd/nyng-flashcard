@@ -5,15 +5,14 @@ import CardContentType
 import CardContentUpdate
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.jdbc.core.JdbcTemplate
-import org.springframework.jdbc.support.GeneratedKeyHolder
-import org.springframework.jdbc.support.KeyHolder
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
-import java.sql.*
 
-@Transactional
 @Repository
-class FlashcardRepository(@Autowired val jdbcTemplate: JdbcTemplate) {
+@Transactional
+class FlashcardRepository(
+    @Autowired val jdbcTemplate: JdbcTemplate,
+) {
 
     fun findAll(): List<FlashcardListItem> {
         val sql = """
@@ -33,23 +32,20 @@ class FlashcardRepository(@Autowired val jdbcTemplate: JdbcTemplate) {
     }
 
     private fun insertCardContent(cardContent: CardContentCreate, type: CardContentType): Int {
-        val keyHolder: KeyHolder = GeneratedKeyHolder()
-        val sql = "INSERT INTO card_content (card_content_type, text, media_url) VALUES (?,?,?)"
-        jdbcTemplate.update({ connection: Connection ->
-            val ps: PreparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)
-            ps.setString(1, type.name)
-            ps.setString(2, cardContent.text)
-            ps.setString(3, cardContent.mediaUrl)
-            ps
-        }, keyHolder)
-        val id = keyHolder.keys?.get("ID") ?: throw RuntimeException("Database error")
-        return id as Int
+        jdbcTemplate.update(
+            "INSERT INTO card_content (card_content_type, text, media_url) VALUES (?,?,?)",
+            type.name,
+            cardContent.text,
+            cardContent.mediaUrl,
+        )
+        val cardContentId = jdbcTemplate.queryForObject("SELECT LAST_INSERT_ID()", Int::class.java)
+        requireNotNull(cardContentId) { "Failed to return $type card content ID!" }
+        return cardContentId
     }
 
     fun insert(card: FlashcardCreate): Int {
         val frontContentId = insertCardContent(card.front, CardContentType.FRONT)
         val backContentId = if (card.back != null) insertCardContent(card.back, CardContentType.BACK) else null
-        // TODO insert tags
         return jdbcTemplate.update(
             "INSERT INTO flashcard (deck_id, front_content_id, back_content_id, study_status) VALUES (?,?,?,?)",
             card.deckId,
@@ -76,7 +72,6 @@ class FlashcardRepository(@Autowired val jdbcTemplate: JdbcTemplate) {
         if (card.back != null) {
             updateCardContent(card.back)
         }
-        // TODO update tags
         return jdbcTemplate.update(
             "UPDATE flashcard SET deck_id = ?, card_type_id = ? WHERE id = ?",
             card.deckId,
