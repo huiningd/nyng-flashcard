@@ -19,4 +19,7 @@ class DeckGroupService(val repository: DeckGroupRepository) {
     @Transactional
     fun update(deckGroupUpdateDTO: DeckGroupUpdateDTO) =
         repository.update(deckGroupUpdateDTO.toDeckGroupUpdate())
+
+    @Transactional
+    fun deleteDeckGroupById(id: Int) = repository.deleteById(id)
 }

@@ -11,7 +11,7 @@ class FlashcardController(val service: FlashcardService) {
 
     @GetMapping("/flashcards/{id}")
     fun getById(@PathVariable("id") id: Int): FlashcardDTO? {
-        return service.findCardById(id)
+        return service.findFlashcardById(id)
     }
 
     @PostMapping("/flashcards")
@@ -28,5 +28,10 @@ class FlashcardController(val service: FlashcardService) {
         flashcardUpdateDTO: FlashcardUpdateDTO,
     ) {
         service.update(flashcardUpdateDTO)
+    }
+
+    @DeleteMapping("/flashcards/{id}")
+    fun deleteById(@PathVariable("id") id: Int) {
+        service.deleteFlashcardById(id)
     }
 }
