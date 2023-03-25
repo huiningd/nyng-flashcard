@@ -1,6 +1,8 @@
 package com.example.flashcardbackend.deck
 
 import com.example.flashcardbackend.flashcard.FlashcardListItem
+import com.example.flashcardbackend.flashcard.FlashcardListItemDTO
+import com.example.flashcardbackend.flashcard.toFlashcardListItemDTO
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Positive
 
@@ -9,7 +11,7 @@ data class DeckDTO(
     val deckGroupId: Int,
     val name: String,
     val description: String?,
-    val flashcards: MutableList<FlashcardListItem>,
+    val flashcards: List<FlashcardListItemDTO>,
 )
 
 data class Deck(
@@ -26,7 +28,7 @@ fun Deck.toDeckDTO(): DeckDTO =
         deckGroupId = this.deckGroupId,
         name = this.name,
         description = this.description,
-        flashcards = this.flashcards,
+        flashcards = this.flashcards.map { it.toFlashcardListItemDTO() },
     )
 
 data class DeckCreateDTO(
