@@ -1,10 +1,9 @@
 package com.example.flashcardbackend.flashcard
 
-import CardContentCreate
-import CardContentType
-import CardContentUpdate
+import org.simpleflatmapper.jdbc.spring.JdbcTemplateMapperFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.jdbc.core.ResultSetExtractor
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
 
@@ -14,11 +13,31 @@ class FlashcardRepository(
     @Autowired val jdbcTemplate: JdbcTemplate,
 ) {
 
+    private val flashcardResultSetExtractor: ResultSetExtractor<List<Flashcard>> = JdbcTemplateMapperFactory
+        .newInstance()
+        .addKeys("id")
+        .newResultSetExtractor(Flashcard::class.java)
+
+    fun findById(id: Int): Flashcard? {
+        val sql = """
+            SELECT f.id AS id, f.deck_id as deckId, f.study_status as study_status, f.last_viewed as last_viewed,
+            front.text AS front_text, front.media_url AS front_media_url,
+            back.text AS back_text, back.media_url AS back_media_url
+            FROM flashcard f
+            LEFT JOIN card_content front on front.id = f.front_content_id
+            LEFT JOIN card_content back on back.id = f.back_content_id
+            WHERE f.id = ?
+        """.trimIndent()
+        val result: List<Flashcard>? = jdbcTemplate.query(sql, flashcardResultSetExtractor, id)
+        return if (!result.isNullOrEmpty()) result[0] else null
+    }
+
     fun findAll(): List<FlashcardListItem> {
         val sql = """
                 SELECT flashcard.id, flashcard.deck_id, card_content.text 
                 FROM flashcard, card_content 
                 WHERE flashcard.front_content_id = card_content.id
+                ORDER BY flashcard.id
         """.trimIndent()
 
         return jdbcTemplate.query(sql) { resultSet, rowNum ->
@@ -79,12 +98,7 @@ class FlashcardRepository(
         )
     }
 
-    fun deleteById(id: Int): Int {
-        return jdbcTemplate.update("delete flashcard where id = ?", id)
-    }
-
-    fun findById(id: Int): Flashcard? {
-        // TODO implement this
-        return null
+    fun deleteById(id: Int) {
+        jdbcTemplate.update("DELETE FROM flashcard WHERE id = ?", id)
     }
 }

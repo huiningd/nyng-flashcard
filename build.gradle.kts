@@ -31,6 +31,7 @@ dependencies {
 
     implementation("org.flywaydb:flyway-mysql")
     implementation("org.mariadb.jdbc:mariadb-java-client:3.1.2")
+    implementation("org.simpleflatmapper:sfm-springjdbc:8.2.3")
 
     // error responses for REST APIs build with Spring Boot.
     implementation("io.github.wimdeblauwe:error-handling-spring-boot-starter:4.1.0")
