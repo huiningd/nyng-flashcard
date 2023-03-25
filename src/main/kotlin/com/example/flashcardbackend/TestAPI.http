@@ -23,8 +23,12 @@ Content-Type: application/json
 GET http://localhost:8080/deckgroups
 
 
-### Get a deck group by id
+### Get a deck group by id 1
 GET http://localhost:8080/deckgroups/1
+
+
+### Get a deck group by id 2
+GET http://localhost:8080/deckgroups/2
 
 
 ### Post a deck
@@ -52,8 +56,12 @@ Content-Type: application/json
 GET http://localhost:8080/decks
 
 
-### Get a deck by id
+### Get a deck by id 1
 GET http://localhost:8080/decks/1
+
+
+### Get a deck by id 2
+GET http://localhost:8080/decks/2
 
 
 ### Post a flash card
