@@ -1,31 +1,18 @@
 package com.example.flashcardbackend.flashcard
 
-import CardContent
-import CardContentCreate
-import CardContentCreateDTO
-import CardContentDTO
-import CardContentUpdate
-import CardContentUpdateDTO
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Positive
-import toCardContentCreate
-import toCardContentDTO
-import toCardContentUpdate
 import java.time.LocalDateTime
-
-typealias CardTagId = String
-
-data class CardTag(
-    val name: String,
-)
 
 data class FlashcardDTO(
     val id: Int,
     val deckId: Int,
-    val front: CardContentDTO,
-    val back: CardContentDTO?,
+    val frontText: String,
+    val frontMediaUrl: String?,
+    val backText: String?,
+    val backMediaUrl: String?,
     val studyStatus: StudyStatus,
-    val tags: MutableList<String>,
+    var tags: List<String> = emptyList(),
     val comment: String?,
     val lastViewed: LocalDateTime,
 )
@@ -33,11 +20,12 @@ data class FlashcardDTO(
 data class Flashcard(
     val id: Int,
     val deckId: Int,
-    val front: CardContent,
-    val back: CardContent?,
+    val frontText: String,
+    val frontMediaUrl: String?,
+    val backText: String?,
+    val backMediaUrl: String?,
     val studyStatus: StudyStatus,
     val comment: String?,
-    val tags: MutableList<String>,
     val lastViewed: LocalDateTime,
 )
 
@@ -45,11 +33,12 @@ fun Flashcard.toFlashcardDTO(): FlashcardDTO =
     FlashcardDTO(
         id = this.id,
         deckId = this.deckId,
-        front = this.front.toCardContentDTO(),
-        back = this.back?.toCardContentDTO(),
+        frontText = this.frontText,
+        frontMediaUrl = this.frontMediaUrl,
+        backText = this.backText,
+        backMediaUrl = this.backMediaUrl,
         studyStatus = this.studyStatus,
         comment = this.comment,
-        tags = this.tags,
         lastViewed = this.lastViewed,
     )
 
@@ -60,7 +49,6 @@ data class FlashcardCreateDTO(
     val front: CardContentCreateDTO,
     val back: CardContentCreateDTO?,
     val comment: String?,
-    val tags: List<CardTagId>?,
 )
 
 data class FlashcardCreate(
@@ -68,7 +56,6 @@ data class FlashcardCreate(
     val front: CardContentCreate,
     val back: CardContentCreate?,
     val comment: String?,
-    val tags: List<CardTagId>?,
 )
 
 fun FlashcardCreateDTO.toFlashcardCreate(): FlashcardCreate =
@@ -77,7 +64,6 @@ fun FlashcardCreateDTO.toFlashcardCreate(): FlashcardCreate =
         front = this.front.toCardContentCreate(),
         back = this.back?.toCardContentCreate(),
         comment = this.comment,
-        tags = this.tags,
     )
 
 data class FlashcardUpdateDTO(
@@ -88,7 +74,6 @@ data class FlashcardUpdateDTO(
     val front: CardContentUpdateDTO?,
     val back: CardContentUpdateDTO?,
     val comment: String?,
-    val tags: List<CardTagId>?, // TODO remove tags from FlashcardUpdateDTO, implement tag API
 )
 
 data class FlashcardUpdate(
@@ -97,7 +82,6 @@ data class FlashcardUpdate(
     val front: CardContentUpdate?,
     val back: CardContentUpdate?,
     val comment: String?,
-    val tags: List<CardTagId>?,
 )
 
 fun FlashcardUpdateDTO.toFlashcardUpdate(): FlashcardUpdate =
@@ -107,24 +91,21 @@ fun FlashcardUpdateDTO.toFlashcardUpdate(): FlashcardUpdate =
         front = this.front?.toCardContentUpdate(),
         back = this.back?.toCardContentUpdate(),
         comment = this.comment,
-        tags = this.tags,
     )
 
 data class FlashcardListItemDTO(
     val id: Int,
-    val deckId: Int,
-    val contentPreview: String,
+    val frontContentText: String,
 )
 
 data class FlashcardListItem(
     val id: Int,
-    val deckId: Int,
-    val contentPreview: String,
+    val cardContentId: Int,
+    val frontContentText: String,
 )
 
 fun FlashcardListItem.toFlashcardListItemDTO(): FlashcardListItemDTO =
     FlashcardListItemDTO(
         id = this.id,
-        deckId = this.deckId,
-        contentPreview = this.contentPreview,
+        frontContentText = this.frontContentText,
     )

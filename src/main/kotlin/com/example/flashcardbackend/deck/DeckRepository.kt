@@ -1,14 +1,11 @@
 package com.example.flashcardbackend.deck
 
-import com.example.flashcardbackend.flashcard.FlashcardListItem
+import org.simpleflatmapper.jdbc.spring.JdbcTemplateMapperFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.dao.DataAccessException
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.ResultSetExtractor
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
-import java.sql.ResultSet
-import java.sql.SQLException
 
 @Repository
 @Transactional
@@ -47,42 +44,26 @@ class DeckRepository(@Autowired val jdbcTemplate: JdbcTemplate) {
         )
     }
 
-    fun deleteById(id: Int): Int {
-        return jdbcTemplate.update("DELETE deck WHERE id = ?", id)
+    fun deleteById(id: Int) {
+        jdbcTemplate.update("DELETE FROM deck WHERE id = ?", id)
     }
+
+    private val deckResultSetExtractor: ResultSetExtractor<List<Deck>> = JdbcTemplateMapperFactory
+        .newInstance()
+        .addKeys("id", "flashcard_id")
+        .newResultSetExtractor(Deck::class.java)
 
     fun findById(id: Int): Deck? {
         val sql = """
-            SELECT deck.*, flashcard.id AS flashcard_id, flashcard.deck_id 
-            FROM deck, flashcard 
-            WHERE deck.id = flashcard.deck_id AND flashcard.id = ?
+            SELECT d.id AS id, d.deck_name AS name, d.description AS description, d.group_id AS deck_group_id,
+            f.id AS flashcard_id,
+            c.text AS flashcard_front_content_text
+            FROM deck d
+            LEFT JOIN flashcard f on d.id = f.deck_id
+            LEFT JOIN card_content c on c.id = f.front_content_id
+            WHERE d.id = ?
         """.trimIndent()
-        return jdbcTemplate.query(sql, DeckResultSetExtractor(), id)
-    }
-}
-
-class DeckResultSetExtractor : ResultSetExtractor<Deck?> {
-    @Throws(SQLException::class, DataAccessException::class)
-    override fun extractData(rs: ResultSet): Deck? {
-        var deck: Deck? = null
-        while (rs.next()) {
-            if (deck == null) {
-                deck = Deck(
-                    id = rs.getInt("id"),
-                    deckGroupId = rs.getInt("group_id"),
-                    name = rs.getString("deck_name"),
-                    description = rs.getString("description"),
-                    flashcards = mutableListOf(),
-                )
-            }
-            val flashcard = FlashcardListItem(
-                rs.getInt("flashcard_id"),
-                rs.getInt("deck_id"),
-                // TODO: add a card_name or preview field so that we don't need to query 3 tables every time fetch a deck
-                "todo",
-            )
-            deck.flashcards += flashcard
-        }
-        return deck
+        val result: List<Deck>? = jdbcTemplate.query(sql, deckResultSetExtractor, id)
+        return if (!result.isNullOrEmpty()) result[0] else null
     }
 }

@@ -1,24 +1,11 @@
+package com.example.flashcardbackend.flashcard
+
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Positive
 
 enum class CardContentType {
     FRONT, BACK,
 }
-
-data class CardContentDTO(
-    val cardContentType: CardContentType,
-    val text: String,
-    val mediaUrl: String?,
-)
-
-data class CardContent(
-    val cardContentType: CardContentType,
-    val text: String,
-    val mediaUrl: String?,
-)
-
-fun CardContent.toCardContentDTO(): CardContentDTO =
-    CardContentDTO(cardContentType = this.cardContentType, text = this.text, mediaUrl = this.mediaUrl)
 
 data class CardContentCreateDTO(
     @field:NotBlank(message = "The card content is required.")

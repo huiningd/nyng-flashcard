@@ -11,8 +11,15 @@ class FlashcardService(val repository: FlashcardRepository) {
         repository.findAll().map { it.toFlashcardListItemDTO() }
 
     @Transactional(readOnly = true)
-    fun findCardById(id: Int): FlashcardDTO? =
-        repository.findById(id)?.toFlashcardDTO()
+    fun findFlashcardById(id: Int): FlashcardDTO? {
+        val card = repository.findById(id)?.toFlashcardDTO()
+        // TODO: use tag repository to get tags
+        val tags = emptyList<String>()
+        if (card != null) {
+            card.tags = tags
+        }
+        return card
+    }
 
     @Transactional
     fun create(flashcardCreateDTO: FlashcardCreateDTO) =
@@ -21,4 +28,7 @@ class FlashcardService(val repository: FlashcardRepository) {
     @Transactional
     fun update(flashcardUpdateDTO: FlashcardUpdateDTO) =
         repository.update(flashcardUpdateDTO.toFlashcardUpdate())
+
+    @Transactional
+    fun deleteFlashcardById(id: Int) = repository.deleteById(id)
 }

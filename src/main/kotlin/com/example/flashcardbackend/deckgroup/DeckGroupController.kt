@@ -29,4 +29,9 @@ class DeckGroupController(val service: DeckGroupService) {
     ) {
         service.update(deckGroupUpdateDTO)
     }
+
+    @DeleteMapping("/deckgroups/{id}")
+    fun deleteById(@PathVariable("id") id: Int) {
+        service.deleteDeckGroupById(id)
+    }
 }

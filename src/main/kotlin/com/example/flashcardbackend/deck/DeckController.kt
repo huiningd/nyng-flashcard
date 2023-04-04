@@ -29,4 +29,9 @@ class DeckController(val service: DeckService) {
     ) {
         service.update(deckUpdateDTO)
     }
+
+    @DeleteMapping("/decks/{id}")
+    fun deleteById(@PathVariable("id") id: Int) {
+        service.deleteDeckById(id)
+    }
 }
