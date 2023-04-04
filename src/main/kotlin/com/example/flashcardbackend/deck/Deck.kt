@@ -19,7 +19,7 @@ data class Deck(
     val deckGroupId: Int,
     val name: String,
     val description: String?,
-    val flashcards: MutableList<FlashcardListItem>,
+    val flashcards: List<FlashcardListItem>,
 )
 
 fun Deck.toDeckDTO(): DeckDTO =

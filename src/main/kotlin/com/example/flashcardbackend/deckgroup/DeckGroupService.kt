@@ -17,7 +17,7 @@ class DeckGroupService(val repository: DeckGroupRepository) {
         repository.insert(deckGroupCreateDTO.toDeckGroupCreate())
 
     @Transactional
-    fun update(deckGroupUpdateDTO: DeckGroupUpdateDTO) =
+    fun update(deckGroupUpdateDTO: DeckGroupUpdateDTO): Int =
         repository.update(deckGroupUpdateDTO.toDeckGroupUpdate())
 
     @Transactional

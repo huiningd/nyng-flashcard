@@ -26,7 +26,7 @@ class FlashcardService(val repository: FlashcardRepository) {
         repository.insert(flashcardCreateDTO.toFlashcardCreate())
 
     @Transactional
-    fun update(flashcardUpdateDTO: FlashcardUpdateDTO) =
+    fun update(flashcardUpdateDTO: FlashcardUpdateDTO): Int =
         repository.update(flashcardUpdateDTO.toFlashcardUpdate())
 
     @Transactional

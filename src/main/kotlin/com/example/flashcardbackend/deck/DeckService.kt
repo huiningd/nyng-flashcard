@@ -17,7 +17,7 @@ class DeckService(val repository: DeckRepository) {
         repository.insert(deckCreateDTO.toDeckCreate())
 
     @Transactional
-    fun update(deckUpdateDTO: DeckUpdateDTO) =
+    fun update(deckUpdateDTO: DeckUpdateDTO): Int =
         repository.update(deckUpdateDTO.toDeckUpdate())
 
     @Transactional
