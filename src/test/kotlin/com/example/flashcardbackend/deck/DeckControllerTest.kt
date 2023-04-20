@@ -2,7 +2,13 @@ package com.example.flashcardbackend.deck
 
 import com.example.flashcardbackend.flashcard.FlashcardListItem
 import org.hamcrest.Matchers
+import org.hamcrest.Matchers.equalTo
+import org.hamcrest.Matchers.hasSize
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.mockito.BDDMockito.given
 import org.mockito.Mockito.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
@@ -11,8 +17,10 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
+import org.springframework.test.web.servlet.setup.MockMvcBuilders
 
 @WebMvcTest(DeckController::class, DeckService::class)
+@DisplayName("Tests for CRUD operations of decks")
 class DeckControllerTest(
     @Autowired
     private val mockMvc: MockMvc,
@@ -20,6 +28,86 @@ class DeckControllerTest(
 
     @MockBean
     private lateinit var deckRepository: DeckRepository
+
+    @Nested
+    @DisplayName("Find all decks")
+    inner class FindAllDecks {
+
+        @Nested
+        @DisplayName("When no decks are found")
+        inner class WhenNoDecksAreFound {
+
+            @BeforeEach
+            fun returnZeroDecks() {
+                given(deckRepository.findAll()).willReturn(listOf())
+            }
+
+            @Test
+            @DisplayName("Should return the HTTP status code OK")
+            fun `Should return HTTP status code OK`() {
+                mockMvc.perform(get("/decks"))
+                    .andExpect(status().isOk)
+            }
+
+            @Test
+            fun `Should return found decks as JSON`() {
+                mockMvc.perform(get("/decks"))
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            }
+
+            @Test
+            fun `Should return zero decks`() {
+                mockMvc.perform(get("/decks"))
+                    .andExpect(jsonPath(("$"), hasSize<Int>(0)))
+            }
+        }
+
+        @Nested
+        @DisplayName("When two decks are found")
+        inner class WhenTwoDecksAreFound {
+
+            @BeforeEach
+            fun returnTwoDecks() {
+                val deckListItems = listOf(
+                    DeckListItem(12, 1, "Deck 1", "Description 1"),
+                    DeckListItem(13, 1, "Deck 2", "Description 2"),
+                )
+
+                given(deckRepository.findAll()).willReturn(deckListItems)
+            }
+
+            @Test
+            fun `Should return HTTP status code OK`() {
+                mockMvc.perform(get("/decks"))
+                    .andExpect(status().isOk)
+            }
+
+            @Test
+            fun `Should return found decks as JSON`() {
+                mockMvc.perform(get("/decks"))
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            }
+
+            @Test
+            fun `Should return two decks`() {
+                mockMvc.perform(get("/decks"))
+                    .andExpect(jsonPath(("$"), hasSize<Int>(2)))
+            }
+
+            @Test
+            fun `Should return the information of the found decks`() {
+                mockMvc.perform(get("/decks"))
+                    .andExpect(jsonPath("[0].id", equalTo(12)))
+                    .andExpect(jsonPath("[0].deckGroupId", equalTo(1)))
+                    .andExpect(jsonPath("[0].name", equalTo("Deck 1")))
+                    .andExpect(jsonPath("[0].description", equalTo("Description 1")))
+                    .andExpect(jsonPath("[1].id", equalTo(13)))
+                    .andExpect(jsonPath("[1].deckGroupId", equalTo(1)))
+                    .andExpect(jsonPath("[1].name", equalTo("Deck 2")))
+                    .andExpect(jsonPath("[1].description", equalTo("Description 2")))
+            }
+        }
+    }
 
     @Test
     fun `should return all decks`() {
