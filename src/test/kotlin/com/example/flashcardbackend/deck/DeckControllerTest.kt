@@ -1,8 +1,15 @@
 package com.example.flashcardbackend.deck
 
 import com.example.flashcardbackend.flashcard.FlashcardListItem
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.hamcrest.Matchers
+import org.hamcrest.Matchers.equalTo
+import org.hamcrest.Matchers.hasSize
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.mockito.BDDMockito.given
 import org.mockito.Mockito.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
@@ -13,174 +20,358 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 
 @WebMvcTest(DeckController::class, DeckService::class)
-class DeckControllerTest(
-    @Autowired
-    private val mockMvc: MockMvc,
+@DisplayName("Tests for CRUD operations of decks")
+class DeckGroupControllerTest(
+    @Autowired private val mockMvc: MockMvc,
+    @Autowired private val objectMapper: ObjectMapper,
 ) {
 
     @MockBean
     private lateinit var deckRepository: DeckRepository
 
-    @Test
-    fun `should return all decks`() {
-        val deckListItems = listOf(
-            DeckListItem(12, 1, "Deck 1", "Description 1"),
-            DeckListItem(13, 1, "Deck 2", "Description 2"),
-        )
+    private var requestBuilder = DeckHttpRequestBuilder(mockMvc)
 
-        `when`(deckRepository.findAll()).thenReturn(deckListItems)
+    @Nested
+    @DisplayName("Find all decks")
+    inner class FindAllDecks {
 
-        mockMvc.perform(get("/decks"))
-            .andExpect(status().isOk)
-            .andExpect(
-                content().json(
-                    """[
-                {"id": 12, "deckGroupId": 1, "name": "Deck 1", "description": "Description 1"},
-                {"id": 13, "deckGroupId": 1, "name": "Deck 2", "description": "Description 2"}
-            ]""",
+        @Nested
+        @DisplayName("When no decks are found")
+        inner class WhenNoDecksAreFound {
+
+            @BeforeEach
+            fun returnZeroDecks() {
+                given(deckRepository.findAll()).willReturn(emptyList())
+            }
+
+            @Test
+            @DisplayName("Should return the HTTP status code OK")
+            fun shouldReturnHttpStatusCodeOK() {
+                requestBuilder.finAll()
+                    .andExpect(status().isOk)
+            }
+
+            @Test
+            @DisplayName("Should return found decks as JSON")
+            fun shouldReturnFoundDecksAsJSON() {
+                requestBuilder.finAll()
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            }
+
+            @Test
+            @DisplayName("Should return zero deck")
+            fun shouldReturnZeroDeck() {
+                requestBuilder.finAll()
+                    .andExpect(jsonPath(("$"), hasSize<Int>(0)))
+            }
+        }
+
+        @Nested
+        @DisplayName("When two decks are found")
+        inner class WhenTwoDecksAreFound {
+
+            @BeforeEach
+            fun returnTwoDecks() {
+                val deckListItems = listOf(
+                    DeckListItem(12, 1, "Deck 1", "Description 1"),
+                    DeckListItem(13, 1, "Deck 2", "Description 2"),
+                )
+
+                given(deckRepository.findAll()).willReturn(deckListItems)
+            }
+
+            @Test
+            @DisplayName("Should return HTTP status code OK")
+            fun shouldReturnHttpStatusCodeOK() {
+                requestBuilder.finAll()
+                    .andExpect(status().isOk)
+            }
+
+            @Test
+            @DisplayName("Should return found decks as JSON")
+            fun shouldReturnFoundDecksAsJSON() {
+                requestBuilder.finAll()
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            }
+
+            @Test
+            @DisplayName("Should return two decks")
+            fun shouldReturnTwoDecks() {
+                requestBuilder.finAll()
+                    .andExpect(jsonPath(("$"), hasSize<Int>(2)))
+            }
+
+            @Test
+            @DisplayName("Should return the information of the found decks")
+            fun shouldReturnCorrectInformation() {
+                requestBuilder.finAll()
+                    .andExpect(jsonPath("[0].id", equalTo(12)))
+                    .andExpect(jsonPath("[0].deckGroupId", equalTo(1)))
+                    .andExpect(jsonPath("[0].name", equalTo("Deck 1")))
+                    .andExpect(jsonPath("[0].description", equalTo("Description 1")))
+                    .andExpect(jsonPath("[1].id", equalTo(13)))
+                    .andExpect(jsonPath("[1].deckGroupId", equalTo(1)))
+                    .andExpect(jsonPath("[1].name", equalTo("Deck 2")))
+                    .andExpect(jsonPath("[1].description", equalTo("Description 2")))
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("Find deck by id")
+    inner class FindDeckById {
+        private val deckId = 1
+
+        @Nested
+        @DisplayName("When deck with id is found")
+        inner class WhenDeckIsFound {
+            private val expectedDeck = Deck(
+                12,
+                1,
+                "Deck 1",
+                "Description 1",
+                listOf(
+                    FlashcardListItem(1, 1, "Front Content 1"),
+                    FlashcardListItem(2, 3, "Front Content 2"),
                 ),
             )
+
+            @BeforeEach
+            fun returnDeck() {
+                given(deckRepository.findById(deckId)).willReturn(expectedDeck)
+            }
+
+            @Test
+            @DisplayName("Should return the HTTP status code OK")
+            fun shouldReturnHttpStatusCodeOK() {
+                requestBuilder.finById(deckId)
+                    .andExpect(status().isOk)
+            }
+
+            @Test
+            @DisplayName("Should return deck as JSON")
+            fun shouldReturnDeckAsJSON() {
+                requestBuilder.finById(deckId)
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            }
+
+            @Test
+            @DisplayName("Should return the expected deck")
+            fun shouldReturnExpectedDeck() {
+                requestBuilder.finById(deckId)
+                    .andExpect(
+                        content().json(
+                            objectMapper.writeValueAsString(expectedDeck.toDeckDTO()),
+                        ),
+                    )
+            }
+        }
+
+        @Nested
+        @DisplayName("When deck with id is not found")
+        inner class WhenDeckIsNotFound {
+            @BeforeEach
+            fun returnNullDeck() {
+                given(deckRepository.findById(deckId)).willReturn(null)
+            }
+
+            @Test
+            @DisplayName("Should return the HTTP status code NOT FOUND")
+            fun shouldReturnHttpStatusCodeNotFound() {
+                requestBuilder.finById(deckId)
+                    .andExpect(status().isNotFound)
+            }
+
+            @Test
+            @DisplayName("Should return not found message")
+            fun shouldReturnNotFoundMessage() {
+                requestBuilder.finById(deckId)
+                    .andExpect(jsonPath("$.message").value("Deck with id $deckId not found."))
+            }
+        }
     }
 
-    @Test
-    fun `should return empty list if no decks`() {
-        `when`(deckRepository.findAll()).thenReturn(emptyList())
+    @Nested
+    @DisplayName("Create a new deck")
+    inner class CreateDeck {
 
-        mockMvc.perform(get("/decks"))
-            .andExpect(status().isOk)
-            .andExpect(content().json("[]"))
+        @Nested
+        @DisplayName("When the deck create request is valid")
+        inner class WhenDeckCreateRequestIsValid {
+            private val deckCreateDTO = DeckCreateDTO(1, "Deck 1", "Description 1")
+            private val requestBody = objectMapper.writeValueAsString(deckCreateDTO)
+            private val deckCreate = deckCreateDTO.toDeckCreate()
+
+            @Test
+            @DisplayName("Should return the HTTP status code CREATED")
+            fun shouldReturnHttpStatusCodeCreated() {
+                requestBuilder.createDeck(requestBody)
+                    .andExpect(status().isCreated)
+            }
+
+            @Test
+            @DisplayName("Should insert a new deck")
+            fun shouldInsertNewDeck() {
+                requestBuilder.createDeck(requestBody)
+                verify(deckRepository).insert(deckCreate)
+            }
+        }
+
+        @Nested
+        @DisplayName("When the deck create request is invalid")
+        inner class WhenDeckCreateRequestIsInvalid {
+            private val requestBody = """{"deckGroupId": 0, "name": "","description": ""}"""
+
+            @Test
+            @DisplayName("Should return the HTTP status code BAD REQUEST")
+            fun shouldReturnHttpStatusCodeBadRequest() {
+                requestBuilder.createDeck(requestBody)
+                    .andExpect(status().isBadRequest)
+            }
+
+            @Test
+            @DisplayName("Should return validation error response body")
+            fun shouldReturnValidationErrorResponse() {
+                requestBuilder.createDeck(requestBody)
+                    .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+                    .andExpect(jsonPath("$.message").value(Matchers.containsString("Validation failed")))
+                    .andExpect(jsonPath("$.fieldErrors[?(@.property == 'deckGroupId')].message").value("The deck group ID should be positive number."))
+                    .andExpect(jsonPath("$.fieldErrors[?(@.property == 'name')].message").value("The deck name is required."))
+            }
+        }
     }
 
-    @Test
-    fun `should return deck by id`() {
-        val deck = Deck(
-            12,
-            1,
-            "Deck 1",
-            "Description 1",
-            listOf(
-            FlashcardListItem(1, 1, "Front Content 1"),
-            FlashcardListItem(2, 3, "Front Content 2"),
-            ),
-        )
+    @Nested
+    @DisplayName("Update a deck")
+    inner class UpdateDeck {
 
-        `when`(deckRepository.findById(1)).thenReturn(deck)
+        @Nested
+        @DisplayName("When the deck update request is valid")
+        inner class WhenDeckUpdateRequestIsValid {
+            private val deckUpdateDTO = DeckUpdateDTO(1, 1, "Deck 1", "Description 1")
+            private val requestBody = objectMapper.writeValueAsString(deckUpdateDTO)
+            private val deckUpdate = deckUpdateDTO.toDeckUpdate()
 
-        mockMvc.perform(get("/decks/1"))
-            .andExpect(status().isOk)
-            .andExpect(
-                content().json(
-                    """{
-                "id": 12,
-                "deckGroupId": 1,
-                "name": "Deck 1",
-                "description": "Description 1",
-                "flashcards": [
-                    {"id": 1, "frontContentText": "Front Content 1"},
-                    {"id": 2, "frontContentText": "Front Content 2"}
-                ]
-            }""",
-                ),
-            )
+            @BeforeEach
+            fun returnRowsAffected() {
+                given(deckRepository.update(deckUpdate)).willReturn(1)
+            }
+
+            @Test
+            @DisplayName("Should return the HTTP status code OK")
+            fun shouldReturnHttpStatusCodeNoContent() {
+                requestBuilder.updateDeck(requestBody)
+                    .andExpect(status().isOk)
+            }
+
+            @Test
+            @DisplayName("Should update the existing deck")
+            fun shouldUpdateExistingDeck() {
+                requestBuilder.updateDeck(requestBody)
+                verify(deckRepository).update(deckUpdate)
+            }
+        }
+
+        @Nested
+        @DisplayName("When the deck update request is invalid")
+        inner class WhenDeckUpdateRequestIsInvalid {
+            private val requestBody = """{"id": 0, "deckGroupId": 0, "name": "", "description": ""}"""
+
+            @Test
+            @DisplayName("Should return the HTTP status code BAD REQUEST")
+            fun shouldReturnHttpStatusCodeBadRequest() {
+                requestBuilder.updateDeck(requestBody)
+                    .andExpect(status().isBadRequest)
+            }
+
+            @Test
+            @DisplayName("Should return validation error response body")
+            fun shouldReturnValidationErrorResponse() {
+                requestBuilder.updateDeck(requestBody)
+                    .andExpect(jsonPath("$.fieldErrors[?(@.property == 'id')].message").value("The deck ID should be positive number."))
+                    .andExpect(jsonPath("$.fieldErrors[?(@.property == 'deckGroupId')].message").value("The deck group ID should be positive number."))
+                    .andExpect(jsonPath("$.fieldErrors[?(@.property == 'name')].message").value("The deck name is required."))
+            }
+        }
+
+        @Nested
+        @DisplayName("When the deck with given id does not exist")
+        inner class WhenDeckWithGivenIdDoesNotExist {
+            private val requestBody = """{"id": 15, "deckGroupId": 1, "name": "Deck 1", "description": "Description 1"}"""
+            private val deckUpdate = DeckUpdate(15, 1, "Deck 1", "Description 1")
+
+            @BeforeEach
+            fun returnRowsAffected() {
+                given(deckRepository.update(deckUpdate)).willReturn(0)
+            }
+
+            @Test
+            @DisplayName("Should return the HTTP status code NOT FOUND")
+            fun shouldReturnHttpStatusCodeNotFound() {
+                requestBuilder.updateDeck(requestBody)
+                    .andExpect(status().isNotFound)
+            }
+
+            @Test
+            @DisplayName("Should return error response body")
+            fun shouldReturnErrorResponse() {
+                requestBuilder.updateDeck(requestBody)
+                    .andExpect(jsonPath("$.message").value("Deck with id 15 not found."))
+            }
+        }
     }
 
-    @Test
-    fun `should return not found if deck with given id does not exist`() {
-        val id = 12
+    @Nested
+    @DisplayName("Delete a deck")
+    inner class DeleteDeck {
+        private val id = 13
 
-        `when`(deckRepository.findById(id)).thenReturn(null)
+        @Nested
+        @DisplayName("When the deck exists")
+        inner class WhenDeckExists {
 
-        mockMvc.perform(get("/decks/$id"))
-            .andExpect(status().isNotFound)
-            .andExpect(jsonPath("$.message").value("Deck with id $id not found."))
-    }
+            @BeforeEach
+            fun returnRowsAffected() {
+                given(deckRepository.deleteById(id)).willReturn(1)
+            }
 
-    @Test
-    fun `should create a new deck`() {
-        val requestBody = """{"deckGroupId": 1, "name": "Deck 1", "description": "Description 1"}"""
-        val deckCreate = DeckCreate(1, "Deck 1", "Description 1")
+            @Test
+            @DisplayName("Should return the HTTP status code OK")
+            fun shouldReturnHttpStatusCodeOk() {
+                requestBuilder.deleteById(id)
+                    .andExpect(status().isOk)
+            }
 
-        mockMvc.perform(
-            post("/decks")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(requestBody),
-        )
-            .andExpect(status().isCreated)
+            @Test
+            @DisplayName("Should delete the deck by id")
+            fun shouldDeleteDeckById() {
+                requestBuilder.deleteById(id)
+                verify(deckRepository).deleteById(id)
+            }
+        }
 
-        verify(deckRepository).insert(deckCreate)
-    }
+        @Nested
+        @DisplayName("When the deck does not exist")
+        inner class WhenDeckDoesNotExist {
 
-    @Test
-    fun `should return bad request if deck create dto is invalid`() {
-        val requestBody = """{"deckGroupId": 0, "name": "","description": ""}"""
+            @BeforeEach
+            fun returnRowsAffected() {
+                given(deckRepository.deleteById(id)).willReturn(0)
+            }
 
-        mockMvc.perform(
-            post("/decks")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(requestBody),
-        )
-            .andExpect(status().isBadRequest)
-            .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
-            .andExpect(jsonPath("$.message").value(Matchers.containsString("Validation failed")))
-            .andExpect(jsonPath("$.fieldErrors[1].message").value("The deck group ID should be positive number."))
-            .andExpect(jsonPath("$.fieldErrors[0].message").value("The deck name is required."))
-    }
+            @Test
+            @DisplayName("Should return the HTTP status code NOT FOUND")
+            fun shouldReturnHttpStatusCodeNotFound() {
+                requestBuilder.deleteById(id)
+                    .andExpect(status().isNotFound)
+            }
 
-    @Test
-    fun `should update an existing deck`() {
-        val requestBody = """{"id": 15, "deckGroupId": 1, "name": "Deck 1", "description": "Description 1"}"""
-        val deckUpdate = DeckUpdate(15, 1, "Deck 1", "Description 1")
-
-        `when`(deckRepository.update(deckUpdate)).thenReturn(1)
-
-        mockMvc.perform(
-            put("/decks")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(requestBody),
-        )
-            .andExpect(status().isOk)
-
-        verify(deckRepository).update(deckUpdate)
-    }
-
-    @Test
-    fun `should return bad request if deck update dto is invalid`() {
-        val requestBody = """{"id": 0, "deckGroupId": 0, "name": "", "description": ""}"""
-
-        mockMvc.perform(
-            put("/decks")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(requestBody),
-        )
-            .andExpect(status().isBadRequest)
-            .andExpect(jsonPath("$.fieldErrors[1].message").value("The deck ID should be positive number."))
-            .andExpect(jsonPath("$.fieldErrors[0].message").value("The deck group ID should be positive number."))
-            .andExpect(jsonPath("$.fieldErrors[2].message").value("The deck name is required."))
-    }
-
-    @Test
-    fun `put should return not found if deck with given id does not exist`() {
-        val requestBody = """{"id": 15, "deckGroupId": 1, "name": "Deck 1", "description": "Description 1"}"""
-        val deckUpdate = DeckUpdate(15, 1, "Deck 1", "Description 1")
-
-        `when`(deckRepository.update(deckUpdate)).thenReturn(0)
-
-        mockMvc.perform(
-            put("/decks")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(requestBody),
-        )
-            .andExpect(status().isNotFound)
-            .andExpect(jsonPath("$.message").value("Deck with id 15 not found."))
-    }
-
-    @Test
-    fun `should delete a deck group by id`() {
-        val id = 13
-
-        mockMvc.perform(delete("/decks/$id"))
-            .andExpect(status().isOk)
-
-        verify(deckRepository).deleteById(id)
+            @Test
+            @DisplayName("Should return error response body")
+            fun shouldReturnErrorResponse() {
+                requestBuilder.deleteById(id)
+                    .andExpect(jsonPath("$.message").value("Deck with id $id not found."))
+            }
+        }
     }
 }
