@@ -98,7 +98,7 @@ class FlashcardRepository(
         )
     }
 
-    fun deleteById(id: Int) {
-        jdbcTemplate.update("DELETE FROM flashcard WHERE id = ?", id)
+    fun deleteById(id: Int): Int {
+        return jdbcTemplate.update("DELETE FROM flashcard WHERE id = ?", id)
     }
 }

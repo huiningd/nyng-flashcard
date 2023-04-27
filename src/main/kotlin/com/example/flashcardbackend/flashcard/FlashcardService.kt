@@ -1,5 +1,6 @@
 package com.example.flashcardbackend.flashcard
 
+import com.example.flashcardbackend.utils.NotFoundException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -12,12 +13,10 @@ class FlashcardService(val repository: FlashcardRepository) {
 
     @Transactional(readOnly = true)
     fun findFlashcardById(id: Int): FlashcardDTO? {
-        val card = repository.findById(id)?.toFlashcardDTO()
+        val card = repository.findById(id)?.toFlashcardDTO() ?: throw(NotFoundException("Flashcard with id $id not found."))
         // TODO: use tag repository to get tags
         val tags = emptyList<String>()
-        if (card != null) {
-            card.tags = tags
-        }
+        card.tags = tags
         return card
     }
 
@@ -26,9 +25,18 @@ class FlashcardService(val repository: FlashcardRepository) {
         repository.insert(flashcardCreateDTO.toFlashcardCreate())
 
     @Transactional
-    fun update(flashcardUpdateDTO: FlashcardUpdateDTO): Int =
-        repository.update(flashcardUpdateDTO.toFlashcardUpdate())
+    fun update(flashcardUpdateDTO: FlashcardUpdateDTO) {
+        val affectedRows = repository.update(flashcardUpdateDTO.toFlashcardUpdate())
+        if (affectedRows == 0) {
+            throw(NotFoundException("Flashcard with id ${flashcardUpdateDTO.id} not found."))
+        }
+    }
 
     @Transactional
-    fun deleteFlashcardById(id: Int) = repository.deleteById(id)
+    fun deleteFlashcardById(id: Int) {
+        val affectedRows = repository.deleteById(id)
+        if (affectedRows == 0) {
+            throw(NotFoundException("Flashcard with id $id not found."))
+        }
+    }
 }
