@@ -41,8 +41,8 @@ class DeckGroupRepository(@Autowired val jdbcTemplate: JdbcTemplate) {
         )
     }
 
-    fun deleteById(id: Int) {
-        jdbcTemplate.update("DELETE FROM deck_group WHERE id = ?", id)
+    fun deleteById(id: Int): Int {
+        return jdbcTemplate.update("DELETE FROM deck_group WHERE id = ?", id)
     }
 
     private val deckGroupResultSetExtractor: ResultSetExtractor<List<DeckGroup>> = JdbcTemplateMapperFactory

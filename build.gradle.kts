@@ -5,7 +5,6 @@ plugins {
     id("io.spring.dependency-management") version "1.1.0"
     kotlin("jvm") version "1.7.22"
     kotlin("plugin.spring") version "1.7.22"
-    kotlin("plugin.jpa") version "1.7.22"
     id("org.jlleitschuh.gradle.ktlint") version "11.3.1"
 }
 
@@ -36,8 +35,15 @@ dependencies {
     // error responses for REST APIs build with Spring Boot.
     implementation("io.github.wimdeblauwe:error-handling-spring-boot-starter:4.1.0")
 
-    runtimeOnly("com.h2database:h2")
+    testImplementation("org.testcontainers:testcontainers:1.17.6")
+    testImplementation("org.testcontainers:junit-jupiter:1.17.6")
+    testImplementation("org.testcontainers:mariadb:1.17.6")
+    testImplementation("org.mariadb.jdbc:mariadb-java-client:3.1.2")
+
+    testImplementation("ch.vorburger.mariaDB4j:mariaDB4j-springboot:2.6.0")
+
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework:spring-test:6.0.7")
 }
 
 tasks.withType<KotlinCompile> {

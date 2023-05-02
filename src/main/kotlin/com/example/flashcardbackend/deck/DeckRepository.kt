@@ -44,8 +44,8 @@ class DeckRepository(@Autowired val jdbcTemplate: JdbcTemplate) {
         )
     }
 
-    fun deleteById(id: Int) {
-        jdbcTemplate.update("DELETE FROM deck WHERE id = ?", id)
+    fun deleteById(id: Int): Int {
+        return jdbcTemplate.update("DELETE FROM deck WHERE id = ?", id)
     }
 
     private val deckResultSetExtractor: ResultSetExtractor<List<Deck>> = JdbcTemplateMapperFactory
