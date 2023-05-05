@@ -77,7 +77,7 @@ class FlashcardRepository(
     private fun updateCardContent(cardContent: CardContentUpdate): Int {
         return jdbcTemplate.update(
             "UPDATE card_content SET card_content_type = ?, text = ?, media_url = ? WHERE id = ?",
-            cardContent.cardContentType,
+            cardContent.cardContentType.toString(),
             cardContent.text,
             cardContent.mediaUrl,
             cardContent.id,
@@ -94,6 +94,7 @@ class FlashcardRepository(
         return jdbcTemplate.update(
             "UPDATE flashcard SET deck_id = ?, card_type_id = ? WHERE id = ?",
             card.deckId,
+            card.cardTypeId,
             card.id,
         )
     }

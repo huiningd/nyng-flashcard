@@ -71,6 +71,8 @@ data class FlashcardUpdateDTO(
     val id: Int,
     @field:Positive(message = "The deck ID should be positive number.")
     val deckId: Int,
+    @field:Positive(message = "The deck ID should be positive number.")
+    val cardTypeId: Int,
     val front: CardContentUpdateDTO?,
     val back: CardContentUpdateDTO?,
     val comment: String?,
@@ -79,6 +81,7 @@ data class FlashcardUpdateDTO(
 data class FlashcardUpdate(
     val id: Int,
     val deckId: Int,
+    val cardTypeId: Int,
     val front: CardContentUpdate?,
     val back: CardContentUpdate?,
     val comment: String?,
@@ -90,6 +93,7 @@ fun FlashcardUpdateDTO.toFlashcardUpdate(): FlashcardUpdate =
         deckId = this.deckId,
         front = this.front?.toCardContentUpdate(),
         back = this.back?.toCardContentUpdate(),
+        cardTypeId = this.cardTypeId,
         comment = this.comment,
     )
 
