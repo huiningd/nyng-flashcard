@@ -1,5 +1,7 @@
-package com.example.flashcardbackend.flashcard
+package com.example.flashcardbackend.webmvctest
 
+import com.example.flashcardbackend.flashcard.*
+import com.example.flashcardbackend.requestbuilder.FlashcardHttpRequestBuilder
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.hamcrest.Matchers
 import org.junit.jupiter.api.BeforeEach

@@ -1,5 +1,7 @@
-package com.example.flashcardbackend.deckgroup
+package com.example.flashcardbackend.webmvctest
 
+import com.example.flashcardbackend.deckgroup.*
+import com.example.flashcardbackend.requestbuilder.DeckGroupHttpRequestBuilder
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.hamcrest.Matchers
 import org.hamcrest.Matchers.containsString

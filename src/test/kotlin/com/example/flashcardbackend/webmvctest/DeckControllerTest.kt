@@ -1,6 +1,8 @@
-package com.example.flashcardbackend.deck
+package com.example.flashcardbackend.webmvctest
 
+import com.example.flashcardbackend.deck.*
 import com.example.flashcardbackend.flashcard.FlashcardListItem
+import com.example.flashcardbackend.requestbuilder.DeckHttpRequestBuilder
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.hamcrest.Matchers
 import org.hamcrest.Matchers.equalTo
