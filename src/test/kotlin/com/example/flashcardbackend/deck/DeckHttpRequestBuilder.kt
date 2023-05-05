@@ -11,12 +11,12 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 class DeckHttpRequestBuilder(private val mockMvc: MockMvc) {
 
     @Throws(Exception::class)
-    fun finAll(): ResultActions {
+    fun findAll(): ResultActions {
         return mockMvc.perform(get("/decks"))
     }
 
     @Throws(Exception::class)
-    fun finById(deckId: Int): ResultActions {
+    fun findById(deckId: Int): ResultActions {
         return mockMvc.perform(get("/decks/$deckId"))
     }
 

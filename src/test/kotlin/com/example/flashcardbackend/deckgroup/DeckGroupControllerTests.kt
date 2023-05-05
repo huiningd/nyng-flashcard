@@ -50,28 +50,28 @@ class DeckGroupControllerTests(
             @Test
             @DisplayName("Should return the HTTP status code OK")
             fun shouldReturnHttpStatusCodeOk() {
-                requestBuilder.finAll()
+                requestBuilder.findAll()
                     .andExpect(status().isOk)
             }
 
             @Test
             @DisplayName("Should return found deck groups as JSON")
             fun shouldReturnFoundDeckGroupsAsJSON() {
-                requestBuilder.finAll()
+                requestBuilder.findAll()
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             }
 
             @Test
             @DisplayName("Should return 2 deck groups")
             fun shouldReturnTwoDeckGroups() {
-                requestBuilder.finAll()
+                requestBuilder.findAll()
                     .andExpect(jsonPath(("$"), Matchers.hasSize<Int>(2)))
             }
 
             @Test
             @DisplayName("Should return information of found deck groups")
             fun shouldReturnFoundDeckGroupsInfo() {
-                requestBuilder.finAll()
+                requestBuilder.findAll()
                     .andExpect(
                         content().json(objectMapper.writeValueAsString(deckGroups)),
                     )
@@ -89,28 +89,28 @@ class DeckGroupControllerTests(
             @Test
             @DisplayName("Should return the HTTP status code OK")
             fun shouldReturnHttpStatusCodeOk() {
-                requestBuilder.finAll()
+                requestBuilder.findAll()
                     .andExpect(status().isOk)
             }
 
             @Test
             @DisplayName("Should return found deck groups as JSON")
             fun shouldReturnFoundDeckGroupsAsJSON() {
-                requestBuilder.finAll()
+                requestBuilder.findAll()
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             }
 
             @Test
             @DisplayName("Should return 0 deck")
             fun shouldReturnZeroDeck() {
-                requestBuilder.finAll()
+                requestBuilder.findAll()
                     .andExpect(jsonPath(("$"), Matchers.hasSize<Int>(0)))
             }
 
             @Test
             @DisplayName("Should return empty list as JSON")
             fun shouldReturnEmptyListAsJson() {
-                requestBuilder.finAll()
+                requestBuilder.findAll()
                     .andExpect(content().json("[]"))
             }
         }

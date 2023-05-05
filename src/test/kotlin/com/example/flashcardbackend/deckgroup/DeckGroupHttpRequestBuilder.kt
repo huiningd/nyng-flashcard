@@ -11,7 +11,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 class DeckGroupHttpRequestBuilder(private val mockMvc: MockMvc) {
 
     @Throws(Exception::class)
-    fun finAll(): ResultActions {
+    fun findAll(): ResultActions {
         return mockMvc.perform(get("/deckgroups"))
     }
 

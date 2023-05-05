@@ -11,12 +11,12 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 class FlashcardHttpRequestBuilder(private val mockMvc: MockMvc) {
 
     @Throws(Exception::class)
-    fun finAll(): ResultActions {
+    fun findAll(): ResultActions {
         return mockMvc.perform(get("/flashcards"))
     }
 
     @Throws(Exception::class)
-    fun finById(id: Int): ResultActions {
+    fun findById(id: Int): ResultActions {
         return mockMvc.perform(get("/flashcards/$id"))
     }
 

@@ -21,7 +21,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 
 @WebMvcTest(DeckController::class, DeckService::class)
 @DisplayName("Tests for CRUD operations of decks")
-class DeckGroupControllerTest(
+class DeckControllerTest(
     @Autowired private val mockMvc: MockMvc,
     @Autowired private val objectMapper: ObjectMapper,
 ) {
@@ -47,21 +47,21 @@ class DeckGroupControllerTest(
             @Test
             @DisplayName("Should return the HTTP status code OK")
             fun shouldReturnHttpStatusCodeOK() {
-                requestBuilder.finAll()
+                requestBuilder.findAll()
                     .andExpect(status().isOk)
             }
 
             @Test
             @DisplayName("Should return found decks as JSON")
             fun shouldReturnFoundDecksAsJSON() {
-                requestBuilder.finAll()
+                requestBuilder.findAll()
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             }
 
             @Test
             @DisplayName("Should return zero deck")
             fun shouldReturnZeroDeck() {
-                requestBuilder.finAll()
+                requestBuilder.findAll()
                     .andExpect(jsonPath(("$"), hasSize<Int>(0)))
             }
         }
@@ -83,28 +83,28 @@ class DeckGroupControllerTest(
             @Test
             @DisplayName("Should return HTTP status code OK")
             fun shouldReturnHttpStatusCodeOK() {
-                requestBuilder.finAll()
+                requestBuilder.findAll()
                     .andExpect(status().isOk)
             }
 
             @Test
             @DisplayName("Should return found decks as JSON")
             fun shouldReturnFoundDecksAsJSON() {
-                requestBuilder.finAll()
+                requestBuilder.findAll()
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             }
 
             @Test
             @DisplayName("Should return two decks")
             fun shouldReturnTwoDecks() {
-                requestBuilder.finAll()
+                requestBuilder.findAll()
                     .andExpect(jsonPath(("$"), hasSize<Int>(2)))
             }
 
             @Test
             @DisplayName("Should return the information of the found decks")
             fun shouldReturnCorrectInformation() {
-                requestBuilder.finAll()
+                requestBuilder.findAll()
                     .andExpect(jsonPath("[0].id", equalTo(12)))
                     .andExpect(jsonPath("[0].deckGroupId", equalTo(1)))
                     .andExpect(jsonPath("[0].name", equalTo("Deck 1")))
@@ -144,21 +144,21 @@ class DeckGroupControllerTest(
             @Test
             @DisplayName("Should return the HTTP status code OK")
             fun shouldReturnHttpStatusCodeOK() {
-                requestBuilder.finById(deckId)
+                requestBuilder.findById(deckId)
                     .andExpect(status().isOk)
             }
 
             @Test
             @DisplayName("Should return deck as JSON")
             fun shouldReturnDeckAsJSON() {
-                requestBuilder.finById(deckId)
+                requestBuilder.findById(deckId)
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             }
 
             @Test
             @DisplayName("Should return the expected deck")
             fun shouldReturnExpectedDeck() {
-                requestBuilder.finById(deckId)
+                requestBuilder.findById(deckId)
                     .andExpect(
                         content().json(
                             objectMapper.writeValueAsString(expectedDeck.toDeckDTO()),
@@ -178,14 +178,14 @@ class DeckGroupControllerTest(
             @Test
             @DisplayName("Should return the HTTP status code NOT FOUND")
             fun shouldReturnHttpStatusCodeNotFound() {
-                requestBuilder.finById(deckId)
+                requestBuilder.findById(deckId)
                     .andExpect(status().isNotFound)
             }
 
             @Test
             @DisplayName("Should return not found message")
             fun shouldReturnNotFoundMessage() {
-                requestBuilder.finById(deckId)
+                requestBuilder.findById(deckId)
                     .andExpect(jsonPath("$.message").value("Deck with id $deckId not found."))
             }
         }

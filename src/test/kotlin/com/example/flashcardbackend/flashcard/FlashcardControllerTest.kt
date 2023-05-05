@@ -50,28 +50,28 @@ class FlashcardControllerTest(
             @Test
             @DisplayName("Should return HTTP status code OK")
             fun shouldReturnHttpStatusCodeOK() {
-                requestBuilder.finAll()
+                requestBuilder.findAll()
                     .andExpect(status().isOk)
             }
 
             @Test
             @DisplayName("Should return found flashcards as JSON")
             fun shouldReturnFoundDecksAsJSON() {
-                requestBuilder.finAll()
+                requestBuilder.findAll()
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             }
 
             @Test
             @DisplayName("Should return 3 deck")
             fun shouldReturnZeroDeck() {
-                requestBuilder.finAll()
+                requestBuilder.findAll()
                     .andExpect(jsonPath(("$"), Matchers.hasSize<Int>(3)))
             }
 
             @Test
             @DisplayName("Should return list of flashcards")
             fun shouldReturnListOfFlashcards() {
-                requestBuilder.finAll()
+                requestBuilder.findAll()
                     .andExpect(jsonPath("$[0].id").value(1))
                     .andExpect(jsonPath("$[0].frontContentText").value("Front content 1"))
                     .andExpect(jsonPath("$[1].id").value(2))
@@ -93,21 +93,21 @@ class FlashcardControllerTest(
             @Test
             @DisplayName("Should return HTTP status code OK")
             fun shouldReturnHttpStatusCodeOK() {
-                requestBuilder.finAll()
+                requestBuilder.findAll()
                     .andExpect(status().isOk)
             }
 
             @Test
             @DisplayName("Should return 0 deck")
             fun shouldReturnZeroDeck() {
-                requestBuilder.finAll()
+                requestBuilder.findAll()
                     .andExpect(jsonPath(("$"), Matchers.hasSize<Int>(0)))
             }
 
             @Test
             @DisplayName("Should return empty list")
             fun shouldReturnEmptyList() {
-                requestBuilder.finAll()
+                requestBuilder.findAll()
                     .andExpect(jsonPath("$").isArray)
                     .andExpect(jsonPath("$").isEmpty)
             }
@@ -136,14 +136,14 @@ class FlashcardControllerTest(
             @Test
             @DisplayName("Should return HTTP status code OK")
             fun shouldReturnHttpStatusCodeOK() {
-                requestBuilder.finById(id)
+                requestBuilder.findById(id)
                     .andExpect(status().isOk)
             }
 
             @Test
             @DisplayName("Should return flashcard with the given ID")
             fun shouldReturnFlashcardWithGivenId() {
-                requestBuilder.finById(id)
+                requestBuilder.findById(id)
                     .andExpect(jsonPath("$.id").value(id))
                     .andExpect(jsonPath("$.deckId").value(1))
                     .andExpect(jsonPath("$.frontText").value("Front text"))
@@ -170,14 +170,14 @@ class FlashcardControllerTest(
             @Test
             @DisplayName("Should return HTTP status code Not Found")
             fun shouldReturnHttpStatusCodeNotFound() {
-                requestBuilder.finById(id)
+                requestBuilder.findById(id)
                     .andExpect(status().isNotFound)
             }
 
             @Test
             @DisplayName("Should return error message")
             fun shouldReturnErrorMessage() {
-                requestBuilder.finById(id)
+                requestBuilder.findById(id)
                     .andExpect(jsonPath("$.message").value("Flashcard with id 1 not found."))
             }
         }
@@ -276,6 +276,7 @@ class FlashcardControllerTest(
                     cardContentType = CardContentType.BACK,
                 ),
                 comment = "Updated comment",
+                cardTypeId = 1,
             )
             private val requestBody = objectMapper.writeValueAsString(flashcardUpdateDTO)
             private val flashcardUpdate = flashcardUpdateDTO.toFlashcardUpdate()
@@ -314,6 +315,7 @@ class FlashcardControllerTest(
                 ),
                 back = null,
                 comment = null,
+                cardTypeId = 1,
             )
             private val requestBody = objectMapper.writeValueAsString(flashcardUpdateDTO)
 
@@ -349,6 +351,7 @@ class FlashcardControllerTest(
                 ),
                 back = null,
                 comment = "Updated comment",
+                cardTypeId = 1,
             )
             private val requestBody = objectMapper.writeValueAsString(flashcardUpdateDTO)
             private val flashcardUpdate = flashcardUpdateDTO.toFlashcardUpdate()
