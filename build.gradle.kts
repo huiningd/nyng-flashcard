@@ -35,9 +35,9 @@ dependencies {
     // error responses for REST APIs build with Spring Boot.
     implementation("io.github.wimdeblauwe:error-handling-spring-boot-starter:4.1.0")
 
-    testImplementation("org.testcontainers:testcontainers:1.17.6")
-    testImplementation("org.testcontainers:junit-jupiter:1.17.6")
-    testImplementation("org.testcontainers:mariadb:1.17.6")
+    testImplementation("org.testcontainers:testcontainers:1.18.0")
+    testImplementation("org.testcontainers:junit-jupiter:1.18.0")
+    testImplementation("org.testcontainers:mariadb:1.18.0")
     testImplementation("org.mariadb.jdbc:mariadb-java-client:3.1.2")
 
     testImplementation("ch.vorburger.mariaDB4j:mariaDB4j-springboot:2.6.0")
