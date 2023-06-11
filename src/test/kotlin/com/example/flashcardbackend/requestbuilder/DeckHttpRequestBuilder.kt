@@ -1,4 +1,4 @@
-package com.example.flashcardbackend.deckgroup
+package com.example.flashcardbackend.requestbuilder
 
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
@@ -8,38 +8,38 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 
-class DeckGroupHttpRequestBuilder(private val mockMvc: MockMvc) {
+class DeckHttpRequestBuilder(private val mockMvc: MockMvc) {
 
     @Throws(Exception::class)
     fun findAll(): ResultActions {
-        return mockMvc.perform(get("/deckgroups"))
+        return mockMvc.perform(get("/decks"))
     }
 
     @Throws(Exception::class)
-    fun findById(id: Int): ResultActions {
-        return mockMvc.perform(get("/deckgroups/$id"))
+    fun findById(deckId: Int): ResultActions {
+        return mockMvc.perform(get("/decks/$deckId"))
     }
 
     @Throws(Exception::class)
-    fun createDeckGroup(requestBody: String): ResultActions {
+    fun createDeck(requestBody: String): ResultActions {
         return mockMvc.perform(
-            post("/deckgroups")
+            post("/decks")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody),
         )
     }
 
     @Throws(Exception::class)
-    fun updateDeckGroup(requestBody: String): ResultActions {
+    fun updateDeck(requestBody: String): ResultActions {
         return mockMvc.perform(
-            put("/deckgroups")
+            put("/decks")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody),
         )
     }
 
     @Throws(Exception::class)
-    fun deleteById(id: Int): ResultActions {
-        return mockMvc.perform(delete("/deckgroups/$id"))
+    fun deleteById(deckId: Int): ResultActions {
+        return mockMvc.perform(delete("/decks/$deckId"))
     }
 }

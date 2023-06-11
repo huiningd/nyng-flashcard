@@ -1,35 +1,42 @@
-package com.example.flashcardbackend.deck
+package com.example.flashcardbackend.integrationtest
 
-import com.example.flashcardbackend.flashcard.FlashcardListItem
+import com.example.flashcardbackend.deck.*
+import com.example.flashcardbackend.requestbuilder.DeckHttpRequestBuilder
 import com.fasterxml.jackson.databind.ObjectMapper
+import org.assertj.db.api.Assertions
+import org.assertj.db.type.Table
 import org.hamcrest.Matchers
-import org.hamcrest.Matchers.equalTo
-import org.hamcrest.Matchers.hasSize
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.mockito.BDDMockito.given
-import org.mockito.Mockito.*
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
-import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
+import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
+import javax.sql.DataSource
 
-@WebMvcTest(DeckController::class, DeckService::class)
-@DisplayName("Tests for CRUD operations of decks")
-class DeckControllerTest(
+@SpringBootTest
+@ActiveProfiles("integrationTest")
+@AutoConfigureMockMvc
+@Sql(
+    value = [
+        "classpath:db/clear-database.sql",
+        "classpath:db/init-database.sql",
+    ],
+)
+class DeckIntegrationTest(
     @Autowired private val mockMvc: MockMvc,
     @Autowired private val objectMapper: ObjectMapper,
+    @Autowired private val dataSource: DataSource,
 ) {
 
-    @MockBean
-    private lateinit var deckRepository: DeckRepository
-
     private var requestBuilder = DeckHttpRequestBuilder(mockMvc)
+
+    private val DECK_TABLE = Table(dataSource, "deck")
 
     @Nested
     @DisplayName("Find all decks")
@@ -37,12 +44,8 @@ class DeckControllerTest(
 
         @Nested
         @DisplayName("When no decks are found")
+        @Sql(statements = ["DELETE FROM deck;"])
         inner class WhenNoDecksAreFound {
-
-            @BeforeEach
-            fun returnZeroDecks() {
-                given(deckRepository.findAll()).willReturn(emptyList())
-            }
 
             @Test
             @DisplayName("Should return the HTTP status code OK")
@@ -62,23 +65,13 @@ class DeckControllerTest(
             @DisplayName("Should return zero deck")
             fun shouldReturnZeroDeck() {
                 requestBuilder.findAll()
-                    .andExpect(jsonPath(("$"), hasSize<Int>(0)))
+                    .andExpect(jsonPath(("$"), Matchers.hasSize<Int>(0)))
             }
         }
 
         @Nested
-        @DisplayName("When two decks are found")
-        inner class WhenTwoDecksAreFound {
-
-            @BeforeEach
-            fun returnTwoDecks() {
-                val deckListItems = listOf(
-                    DeckListItem(12, 1, "Deck 1", "Description 1"),
-                    DeckListItem(13, 1, "Deck 2", "Description 2"),
-                )
-
-                given(deckRepository.findAll()).willReturn(deckListItems)
-            }
+        @DisplayName("When three decks are found")
+        inner class WhenDecksAreFound {
 
             @Test
             @DisplayName("Should return HTTP status code OK")
@@ -98,21 +91,16 @@ class DeckControllerTest(
             @DisplayName("Should return two decks")
             fun shouldReturnTwoDecks() {
                 requestBuilder.findAll()
-                    .andExpect(jsonPath(("$"), hasSize<Int>(2)))
+                    .andExpect(jsonPath(("$"), Matchers.hasSize<Int>(3)))
             }
 
             @Test
             @DisplayName("Should return the information of the found decks")
             fun shouldReturnCorrectInformation() {
                 requestBuilder.findAll()
-                    .andExpect(jsonPath("[0].id", equalTo(12)))
-                    .andExpect(jsonPath("[0].deckGroupId", equalTo(1)))
-                    .andExpect(jsonPath("[0].name", equalTo("Deck 1")))
-                    .andExpect(jsonPath("[0].description", equalTo("Description 1")))
-                    .andExpect(jsonPath("[1].id", equalTo(13)))
-                    .andExpect(jsonPath("[1].deckGroupId", equalTo(1)))
-                    .andExpect(jsonPath("[1].name", equalTo("Deck 2")))
-                    .andExpect(jsonPath("[1].description", equalTo("Description 2")))
+                    .andExpect(
+                        content().json(objectMapper.writeValueAsString(decks)),
+                    )
             }
         }
     }
@@ -120,26 +108,11 @@ class DeckControllerTest(
     @Nested
     @DisplayName("Find deck by id")
     inner class FindDeckById {
-        private val deckId = 1
 
         @Nested
         @DisplayName("When deck with id is found")
         inner class WhenDeckIsFound {
-            private val expectedDeck = Deck(
-                12,
-                1,
-                "Deck 1",
-                "Description 1",
-                listOf(
-                    FlashcardListItem(1, 1, "Front Content 1"),
-                    FlashcardListItem(2, 3, "Front Content 2"),
-                ),
-            )
-
-            @BeforeEach
-            fun returnDeck() {
-                given(deckRepository.findById(deckId)).willReturn(expectedDeck)
-            }
+            private val deckId = 1
 
             @Test
             @DisplayName("Should return the HTTP status code OK")
@@ -161,7 +134,7 @@ class DeckControllerTest(
                 requestBuilder.findById(deckId)
                     .andExpect(
                         content().json(
-                            objectMapper.writeValueAsString(expectedDeck.toDeckDTO()),
+                            objectMapper.writeValueAsString(deckSpanish),
                         ),
                     )
             }
@@ -170,10 +143,7 @@ class DeckControllerTest(
         @Nested
         @DisplayName("When deck with id is not found")
         inner class WhenDeckIsNotFound {
-            @BeforeEach
-            fun returnNullDeck() {
-                given(deckRepository.findById(deckId)).willReturn(null)
-            }
+            private val deckId = 50
 
             @Test
             @DisplayName("Should return the HTTP status code NOT FOUND")
@@ -198,9 +168,8 @@ class DeckControllerTest(
         @Nested
         @DisplayName("When the deck create request is valid")
         inner class WhenDeckCreateRequestIsValid {
-            private val deckCreateDTO = DeckCreateDTO(1, "Deck 1", "Description 1")
+            private val deckCreateDTO = DeckCreateDTO(1, "Finnish words 5", "A deck for learning Finnish vocabulary.")
             private val requestBody = objectMapper.writeValueAsString(deckCreateDTO)
-            private val deckCreate = deckCreateDTO.toDeckCreate()
 
             @Test
             @DisplayName("Should return the HTTP status code CREATED")
@@ -210,10 +179,41 @@ class DeckControllerTest(
             }
 
             @Test
-            @DisplayName("Should insert a new deck")
+            @DisplayName("Should insert the deck into the database")
+            fun shouldInsertNewDeckIntoTheDatabase() {
+                requestBuilder.createDeck(requestBody)
+                val expectedDeckCount = 4
+
+                // Check row count
+                Assertions.assertThat(DECK_TABLE).hasNumberOfRows(expectedDeckCount)
+            }
+
+            @Test
+            @DisplayName("Should insert the deck into the database with correct values")
+            fun shouldInsertNewDeckIntoTheDatabaseWithCorrectValues() {
+                requestBuilder.createDeck(requestBody)
+                val expectedDeckIndex = 3
+
+                // Check row values
+                Assertions.assertThat(DECK_TABLE).row(expectedDeckIndex)
+                    .value("group_id").`as`("deckGroupId")
+                    .isEqualTo(deckCreateDTO.deckGroupId)
+                    .value("deck_name").`as`("name")
+                    .isEqualTo(deckCreateDTO.name)
+                    .value("description").`as`("description")
+                    .isEqualTo(deckCreateDTO.description)
+            }
+
+            @Test
+            @DisplayName("The new deck should be found when fetching")
             fun shouldInsertNewDeck() {
                 requestBuilder.createDeck(requestBody)
-                verify(deckRepository).insert(deckCreate)
+                // Verify the last deck is the newly created one
+                requestBuilder.findAll()
+                    .andExpect(jsonPath(("$"), Matchers.hasSize<Int>(4)))
+                    .andExpect(jsonPath("$[3].deckGroupId").value(deckCreateDTO.deckGroupId))
+                    .andExpect(jsonPath("$[3].name").value(deckCreateDTO.name))
+                    .andExpect(jsonPath("$[3].description").value(deckCreateDTO.description))
             }
         }
 
@@ -248,14 +248,9 @@ class DeckControllerTest(
         @Nested
         @DisplayName("When the deck update request is valid")
         inner class WhenDeckUpdateRequestIsValid {
-            private val deckUpdateDTO = DeckUpdateDTO(1, 1, "Deck 1", "Description 1")
+            private val deckUpdateDTO = DeckUpdateDTO(1, 1, "Deck updated", "Description updated")
             private val requestBody = objectMapper.writeValueAsString(deckUpdateDTO)
-            private val deckUpdate = deckUpdateDTO.toDeckUpdate()
-
-            @BeforeEach
-            fun returnRowsAffected() {
-                given(deckRepository.update(deckUpdate)).willReturn(1)
-            }
+            private val rowIndexOfDeck = 0
 
             @Test
             @DisplayName("Should return the HTTP status code OK")
@@ -265,10 +260,29 @@ class DeckControllerTest(
             }
 
             @Test
-            @DisplayName("Should update the existing deck")
+            @DisplayName("Should update the deck in the database")
+            fun shouldUpdateDeckIntoTheDatabase() {
+                requestBuilder.updateDeck(requestBody)
+
+                // Verify data is updated in db
+                Assertions.assertThat(DECK_TABLE).row(rowIndexOfDeck)
+                    .value("group_id").`as`("deckGroupId")
+                    .isEqualTo(deckUpdateDTO.deckGroupId)
+                    .value("deck_name").`as`("name")
+                    .isEqualTo(deckUpdateDTO.name)
+                    .value("description").`as`("description")
+                    .isEqualTo(deckUpdateDTO.description)
+            }
+
+            @Test
+            @DisplayName("The updated deck should be found when fetching by ID")
             fun shouldUpdateExistingDeck() {
                 requestBuilder.updateDeck(requestBody)
-                verify(deckRepository).update(deckUpdate)
+                // Verify the deck is updated
+                requestBuilder.findById(deckUpdateDTO.id)
+                    .andExpect(jsonPath("$.deckGroupId").value(deckUpdateDTO.deckGroupId))
+                    .andExpect(jsonPath("$.name").value(deckUpdateDTO.name))
+                    .andExpect(jsonPath("$.description").value(deckUpdateDTO.description))
             }
         }
 
@@ -298,12 +312,6 @@ class DeckControllerTest(
         @DisplayName("When the deck with given id does not exist")
         inner class WhenDeckWithGivenIdDoesNotExist {
             private val requestBody = """{"id": 15, "deckGroupId": 1, "name": "Deck 1", "description": "Description 1"}"""
-            private val deckUpdate = DeckUpdate(15, 1, "Deck 1", "Description 1")
-
-            @BeforeEach
-            fun returnRowsAffected() {
-                given(deckRepository.update(deckUpdate)).willReturn(0)
-            }
 
             @Test
             @DisplayName("Should return the HTTP status code NOT FOUND")
@@ -324,16 +332,11 @@ class DeckControllerTest(
     @Nested
     @DisplayName("Delete a deck")
     inner class DeleteDeck {
-        private val id = 13
 
         @Nested
         @DisplayName("When the deck exists")
         inner class WhenDeckExists {
-
-            @BeforeEach
-            fun returnRowsAffected() {
-                given(deckRepository.deleteById(id)).willReturn(1)
-            }
+            private val id = 2
 
             @Test
             @DisplayName("Should return the HTTP status code OK")
@@ -346,18 +349,16 @@ class DeckControllerTest(
             @DisplayName("Should delete the deck by id")
             fun shouldDeleteDeckById() {
                 requestBuilder.deleteById(id)
-                verify(deckRepository).deleteById(id)
+                // Verify it is deleted
+                requestBuilder.findById(id)
+                    .andExpect(status().isNotFound)
             }
         }
 
         @Nested
         @DisplayName("When the deck does not exist")
         inner class WhenDeckDoesNotExist {
-
-            @BeforeEach
-            fun returnRowsAffected() {
-                given(deckRepository.deleteById(id)).willReturn(0)
-            }
+            private val id = 29
 
             @Test
             @DisplayName("Should return the HTTP status code NOT FOUND")

@@ -1,4 +1,4 @@
-package com.example.flashcardbackend.flashcard
+package com.example.flashcardbackend.requestbuilder
 
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
