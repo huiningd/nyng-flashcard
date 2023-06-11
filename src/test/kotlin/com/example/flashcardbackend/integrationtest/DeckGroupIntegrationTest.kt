@@ -1,9 +1,11 @@
 package com.example.flashcardbackend.integrationtest
 
 import com.example.flashcardbackend.deckgroup.DeckGroupCreate
-import com.example.flashcardbackend.requestbuilder.DeckGroupHttpRequestBuilder
 import com.example.flashcardbackend.deckgroup.DeckGroupUpdate
+import com.example.flashcardbackend.requestbuilder.DeckGroupHttpRequestBuilder
 import com.fasterxml.jackson.databind.ObjectMapper
+import org.assertj.db.api.Assertions.assertThat
+import org.assertj.db.type.Table
 import org.hamcrest.Matchers
 import org.junit.jupiter.api.*
 import org.springframework.beans.factory.annotation.Autowired
@@ -14,6 +16,7 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
+import javax.sql.DataSource
 
 @SpringBootTest
 @ActiveProfiles("integrationTest")
@@ -27,9 +30,12 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 class DeckGroupIntegrationTest(
     @Autowired private val mockMvc: MockMvc,
     @Autowired private val objectMapper: ObjectMapper,
+    @Autowired private val dataSource: DataSource,
 ) {
 
     private val requestBuilder = DeckGroupHttpRequestBuilder(mockMvc)
+
+    private val DECK_GROUP_TABLE = Table(dataSource, "deck_group")
 
     @Nested
     @DisplayName("Find all deck groups")
@@ -185,7 +191,31 @@ class DeckGroupIntegrationTest(
             }
 
             @Test
-            @DisplayName("Should insert the deck group in the repository")
+            @DisplayName("Should insert the deck group into the database")
+            fun shouldInsertDeckGroupIntoTheDatabase() {
+                requestBuilder.createDeckGroup(requestBody)
+                val expectedDeckGroupCount = 4
+
+                // Check row count
+                assertThat(DECK_GROUP_TABLE).hasNumberOfRows(expectedDeckGroupCount)
+            }
+
+            @Test
+            @DisplayName("Should insert the deck group into the database with correct values")
+            fun shouldInsertDeckGroupIntoTheDatabaseWithCorrectValues() {
+                requestBuilder.createDeckGroup(requestBody)
+                val expectedDeckGroupIndex = 3
+
+                // Check row values
+                assertThat(DECK_GROUP_TABLE).row(expectedDeckGroupIndex)
+                    .value("group_name").`as`("name")
+                    .isEqualTo(deckGroupCreate.name)
+                    .value("description").`as`("description")
+                    .isEqualTo(deckGroupCreate.description)
+            }
+
+            @Test
+            @DisplayName("The inserted new deck group is found when fetching")
             fun shouldInsertDeckGroupInTheRepository() {
                 requestBuilder.createDeckGroup(requestBody)
                 // Verify the last deck group is the newly created one
@@ -228,6 +258,7 @@ class DeckGroupIntegrationTest(
         inner class WhenDeckGroupIsUpdatedSuccessfully {
             private val requestBody = """{"id": 1, "name": "Updated Deck Group", "description": "An updated deck group."}"""
             private val deckGroupUpdate = DeckGroupUpdate(1, "Updated Deck Group", "An updated deck group.")
+            private val rowIndexOfDeckGroup = 0
 
             @Test
             @DisplayName("Should return the HTTP status code OK")
@@ -237,7 +268,20 @@ class DeckGroupIntegrationTest(
             }
 
             @Test
-            @DisplayName("Should update the deck group in the repository")
+            @DisplayName("Should update the deck group in the database")
+            fun shouldUpdateDeckGroupIntoTheDatabase() {
+                requestBuilder.updateDeckGroup(requestBody)
+
+                // Verify the deck group is updated in db
+                assertThat(DECK_GROUP_TABLE).row(rowIndexOfDeckGroup)
+                    .value("group_name").`as`("name")
+                    .isEqualTo(deckGroupUpdate.name)
+                    .value("description").`as`("description")
+                    .isEqualTo(deckGroupUpdate.description)
+            }
+
+            @Test
+            @DisplayName("The updated deck group is found when fetching by ID")
             fun shouldUpdateDeckGroupInTheRepository() {
                 requestBuilder.updateDeckGroup(requestBody)
                 // Verify the deck group is updated

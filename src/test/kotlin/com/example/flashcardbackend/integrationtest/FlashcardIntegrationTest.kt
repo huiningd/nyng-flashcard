@@ -3,6 +3,8 @@ package com.example.flashcardbackend.integrationtest
 import com.example.flashcardbackend.flashcard.*
 import com.example.flashcardbackend.requestbuilder.FlashcardHttpRequestBuilder
 import com.fasterxml.jackson.databind.ObjectMapper
+import org.assertj.db.api.Assertions
+import org.assertj.db.type.Table
 import org.hamcrest.Matchers
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -15,6 +17,7 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
+import javax.sql.DataSource
 
 @SpringBootTest
 @ActiveProfiles("integrationTest")
@@ -28,9 +31,13 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 class FlashcardIntegrationTest(
     @Autowired private val mockMvc: MockMvc,
     @Autowired private val objectMapper: ObjectMapper,
+    @Autowired private val dataSource: DataSource,
 ) {
 
     private var requestBuilder = FlashcardHttpRequestBuilder(mockMvc)
+
+    private val FLASHCARD_TABLE = Table(dataSource, "flashcard")
+    private val FLASHCARD_CONTENT_TABLE = Table(dataSource, "card_content")
 
     @Nested
     @DisplayName("Get all flashcards")
@@ -170,7 +177,7 @@ class FlashcardIntegrationTest(
                 ),
                 back = CardContentCreateDTO(
                     text = "kani, jänis",
-                    mediaUrl = null,
+                    mediaUrl = "test-this-url",
                 ),
                 comment = null,
             )
@@ -184,7 +191,63 @@ class FlashcardIntegrationTest(
             }
 
             @Test
-            @DisplayName("Should insert a new flashcard")
+            @DisplayName("Should insert the new flashcard into the database")
+            fun shouldInsertNewFlashcardIntoTheDatabase() {
+                requestBuilder.createFlashcard(requestBody)
+                val expectedCardCount = 5 // There were already 4 cards in DB, plus the new one should be 5
+
+                // Check row count
+                Assertions.assertThat(FLASHCARD_TABLE).hasNumberOfRows(expectedCardCount)
+            }
+
+            @Test
+            @DisplayName("Should insert the new flashcard content into the database")
+            fun shouldInsertNewFlashcardContentIntoTheDatabase() {
+                requestBuilder.createFlashcard(requestBody)
+                val expectedCardContentCount = 10
+
+                // Check row count
+                Assertions.assertThat(FLASHCARD_CONTENT_TABLE).hasNumberOfRows(expectedCardContentCount)
+            }
+
+            @Test
+            @DisplayName("Should insert the new flashcard into the database with correct values")
+            fun shouldInsertNewFlashcardIntoTheDatabaseWithCorrectValues() {
+                requestBuilder.createFlashcard(requestBody)
+                val expectedCardId = 5
+                val expectedCardIndex = 4
+
+                // Verify data is created in db
+                Assertions.assertThat(FLASHCARD_TABLE).row(expectedCardIndex)
+                    .value("deck_id").`as`("deckId")
+                    .isEqualTo(flashcardCreateDTO.deckId)
+                    .value("id").`as`("id")
+                    .isEqualTo(expectedCardId)
+            }
+
+            @Test
+            @DisplayName("Should insert the new flashcard content into the database with correct values")
+            fun shouldInsertNewFlashcardContentIntoTheDatabaseWithCorrectValues() {
+                requestBuilder.createFlashcard(requestBody)
+                val expectedFrontContentIndex = 8
+                val expectedBackContentIndex = 9
+
+                // Verify data is created in db
+                Assertions.assertThat(FLASHCARD_CONTENT_TABLE).row(expectedFrontContentIndex)
+                    .value("text").`as`("text")
+                    .isEqualTo(flashcardCreateDTO.front.text)
+                    .value("media_url").`as`("mediaUrl")
+                    .isEqualTo(flashcardCreateDTO.front.mediaUrl)
+
+                Assertions.assertThat(FLASHCARD_CONTENT_TABLE).row(expectedBackContentIndex)
+                    .value("text").`as`("text")
+                    .isEqualTo(flashcardCreateDTO.back!!.text)
+                    .value("media_url").`as`("mediaUrl")
+                    .isEqualTo(flashcardCreateDTO.back!!.mediaUrl)
+            }
+
+            @Test
+            @DisplayName("The new flashcard should be found when fetching")
             fun shouldInsertNewFlashcard() {
                 requestBuilder.createFlashcard(requestBody)
 
@@ -197,7 +260,7 @@ class FlashcardIntegrationTest(
             }
 
             @Test
-            @DisplayName("Should insert the flashcard information correctly")
+            @DisplayName("The new flashcard information should be correct when fetching")
             fun shouldInsertInformationOfNewFlashcard() {
                 requestBuilder.createFlashcard(requestBody)
 
@@ -261,19 +324,22 @@ class FlashcardIntegrationTest(
                 front = CardContentUpdateDTO(
                     id = 1,
                     text = "Updated front text",
-                    mediaUrl = null,
+                    mediaUrl = "test-url-2",
                     cardContentType = CardContentType.FRONT,
                 ),
                 back = CardContentUpdateDTO(
                     id = 2,
                     text = "Updated back text",
-                    mediaUrl = null,
+                    mediaUrl = "test-url-1",
                     cardContentType = CardContentType.BACK,
                 ),
                 comment = "Updated comment",
                 cardTypeId = 1,
             )
             private val requestBody = objectMapper.writeValueAsString(flashcardUpdateDTO)
+            private val rowIndexOfFlashcard = 0
+            private val rowIndexOfFrontContent = 0
+            private val rowIndexOfBackContent = 1
 
             @Test
             @DisplayName("Should return the HTTP status code OK")
@@ -283,7 +349,39 @@ class FlashcardIntegrationTest(
             }
 
             @Test
-            @DisplayName("Should update the existing flashcard")
+            @DisplayName("Should update the flashcard in the database")
+            fun shouldUpdateFlashcardInTheDatabase() {
+                requestBuilder.updateFlashcard(requestBody)
+
+                // Verify data is updated in db
+                Assertions.assertThat(FLASHCARD_TABLE).row(rowIndexOfFlashcard)
+                    .value("deck_id").`as`("deckId")
+                    .isEqualTo(flashcardUpdateDTO.deckId)
+                    .value("card_type_id").`as`("cardTypeId")
+                    .isEqualTo(flashcardUpdateDTO.cardTypeId)
+            }
+
+            @Test
+            @DisplayName("Should update the flashcard content in the database")
+            fun shouldUpdateFlashcardContentInTheDatabase() {
+                requestBuilder.updateFlashcard(requestBody)
+
+                // Verify data is updated in db
+                Assertions.assertThat(FLASHCARD_CONTENT_TABLE).row(rowIndexOfFrontContent)
+                    .value("text").`as`("text")
+                    .isEqualTo(flashcardUpdateDTO.front!!.text)
+                    .value("media_url").`as`("mediaUrl")
+                    .isEqualTo(flashcardUpdateDTO.front!!.mediaUrl)
+
+                Assertions.assertThat(FLASHCARD_CONTENT_TABLE).row(rowIndexOfBackContent)
+                    .value("text").`as`("text")
+                    .isEqualTo(flashcardUpdateDTO.back!!.text)
+                    .value("media_url").`as`("mediaUrl")
+                    .isEqualTo(flashcardUpdateDTO.back!!.mediaUrl)
+            }
+
+            @Test
+            @DisplayName("The updated flashcard should be found when fetching by ID")
             fun shouldUpdateExistingFlashcard() {
                 requestBuilder.updateFlashcard(requestBody)
                 // Verify it is updated

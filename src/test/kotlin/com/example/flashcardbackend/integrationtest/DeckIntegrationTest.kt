@@ -3,6 +3,8 @@ package com.example.flashcardbackend.integrationtest
 import com.example.flashcardbackend.deck.*
 import com.example.flashcardbackend.requestbuilder.DeckHttpRequestBuilder
 import com.fasterxml.jackson.databind.ObjectMapper
+import org.assertj.db.api.Assertions
+import org.assertj.db.type.Table
 import org.hamcrest.Matchers
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -15,6 +17,7 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
+import javax.sql.DataSource
 
 @SpringBootTest
 @ActiveProfiles("integrationTest")
@@ -28,9 +31,12 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 class DeckIntegrationTest(
     @Autowired private val mockMvc: MockMvc,
     @Autowired private val objectMapper: ObjectMapper,
+    @Autowired private val dataSource: DataSource,
 ) {
 
     private var requestBuilder = DeckHttpRequestBuilder(mockMvc)
+
+    private val DECK_TABLE = Table(dataSource, "deck")
 
     @Nested
     @DisplayName("Find all decks")
@@ -173,7 +179,33 @@ class DeckIntegrationTest(
             }
 
             @Test
-            @DisplayName("Should insert a new deck")
+            @DisplayName("Should insert the deck into the database")
+            fun shouldInsertNewDeckIntoTheDatabase() {
+                requestBuilder.createDeck(requestBody)
+                val expectedDeckCount = 4
+
+                // Check row count
+                Assertions.assertThat(DECK_TABLE).hasNumberOfRows(expectedDeckCount)
+            }
+
+            @Test
+            @DisplayName("Should insert the deck into the database with correct values")
+            fun shouldInsertNewDeckIntoTheDatabaseWithCorrectValues() {
+                requestBuilder.createDeck(requestBody)
+                val expectedDeckIndex = 3
+
+                // Check row values
+                Assertions.assertThat(DECK_TABLE).row(expectedDeckIndex)
+                    .value("group_id").`as`("deckGroupId")
+                    .isEqualTo(deckCreateDTO.deckGroupId)
+                    .value("deck_name").`as`("name")
+                    .isEqualTo(deckCreateDTO.name)
+                    .value("description").`as`("description")
+                    .isEqualTo(deckCreateDTO.description)
+            }
+
+            @Test
+            @DisplayName("The new deck should be found when fetching")
             fun shouldInsertNewDeck() {
                 requestBuilder.createDeck(requestBody)
                 // Verify the last deck is the newly created one
@@ -218,6 +250,7 @@ class DeckIntegrationTest(
         inner class WhenDeckUpdateRequestIsValid {
             private val deckUpdateDTO = DeckUpdateDTO(1, 1, "Deck updated", "Description updated")
             private val requestBody = objectMapper.writeValueAsString(deckUpdateDTO)
+            private val rowIndexOfDeck = 0
 
             @Test
             @DisplayName("Should return the HTTP status code OK")
@@ -227,7 +260,22 @@ class DeckIntegrationTest(
             }
 
             @Test
-            @DisplayName("Should update the existing deck")
+            @DisplayName("Should update the deck in the database")
+            fun shouldUpdateDeckIntoTheDatabase() {
+                requestBuilder.updateDeck(requestBody)
+
+                // Verify data is updated in db
+                Assertions.assertThat(DECK_TABLE).row(rowIndexOfDeck)
+                    .value("group_id").`as`("deckGroupId")
+                    .isEqualTo(deckUpdateDTO.deckGroupId)
+                    .value("deck_name").`as`("name")
+                    .isEqualTo(deckUpdateDTO.name)
+                    .value("description").`as`("description")
+                    .isEqualTo(deckUpdateDTO.description)
+            }
+
+            @Test
+            @DisplayName("The updated deck should be found when fetching by ID")
             fun shouldUpdateExistingDeck() {
                 requestBuilder.updateDeck(requestBody)
                 // Verify the deck is updated
