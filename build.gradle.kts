@@ -40,10 +40,9 @@ dependencies {
     testImplementation("org.testcontainers:mariadb:1.18.0")
     testImplementation("org.mariadb.jdbc:mariadb-java-client:3.1.2")
 
-    testImplementation("ch.vorburger.mariaDB4j:mariaDB4j-springboot:2.6.0")
-
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework:spring-test:6.0.7")
+    testImplementation("org.assertj:assertj-db:2.0.2")
 }
 
 tasks.withType<KotlinCompile> {
