@@ -1,5 +1,8 @@
 package com.example.flashcardbackend.requestbuilder
 
+import com.example.flashcardbackend.deck.DeckCreateDTO
+import com.example.flashcardbackend.deck.DeckUpdateDTO
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.ResultActions
@@ -8,7 +11,10 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 
-class DeckHttpRequestBuilder(private val mockMvc: MockMvc) {
+class DeckHttpRequestBuilder(
+    private val mockMvc: MockMvc,
+    private val objectMapper: ObjectMapper,
+) {
 
     @Throws(Exception::class)
     fun findAll(): ResultActions {
@@ -21,7 +27,8 @@ class DeckHttpRequestBuilder(private val mockMvc: MockMvc) {
     }
 
     @Throws(Exception::class)
-    fun createDeck(requestBody: String): ResultActions {
+    fun createDeck(deckCreateDTO: DeckCreateDTO): ResultActions {
+        val requestBody = objectMapper.writeValueAsString(deckCreateDTO)
         return mockMvc.perform(
             post("/decks")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -30,7 +37,8 @@ class DeckHttpRequestBuilder(private val mockMvc: MockMvc) {
     }
 
     @Throws(Exception::class)
-    fun updateDeck(requestBody: String): ResultActions {
+    fun updateDeck(deckUpdateDTO: DeckUpdateDTO): ResultActions {
+        val requestBody = objectMapper.writeValueAsString(deckUpdateDTO)
         return mockMvc.perform(
             put("/decks")
                 .contentType(MediaType.APPLICATION_JSON)

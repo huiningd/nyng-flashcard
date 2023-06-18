@@ -34,7 +34,7 @@ class DeckIntegrationTest(
     @Autowired private val dataSource: DataSource,
 ) {
 
-    private var requestBuilder = DeckHttpRequestBuilder(mockMvc)
+    private var requestBuilder = DeckHttpRequestBuilder(mockMvc, objectMapper)
 
     private val DECK_TABLE = Table(dataSource, "deck")
 
@@ -169,19 +169,18 @@ class DeckIntegrationTest(
         @DisplayName("When the deck create request is valid")
         inner class WhenDeckCreateRequestIsValid {
             private val deckCreateDTO = DeckCreateDTO(1, "Finnish words 5", "A deck for learning Finnish vocabulary.")
-            private val requestBody = objectMapper.writeValueAsString(deckCreateDTO)
 
             @Test
             @DisplayName("Should return the HTTP status code CREATED")
             fun shouldReturnHttpStatusCodeCreated() {
-                requestBuilder.createDeck(requestBody)
+                requestBuilder.createDeck(deckCreateDTO)
                     .andExpect(status().isCreated)
             }
 
             @Test
             @DisplayName("Should insert the deck into the database")
             fun shouldInsertNewDeckIntoTheDatabase() {
-                requestBuilder.createDeck(requestBody)
+                requestBuilder.createDeck(deckCreateDTO)
                 val expectedDeckCount = 4
 
                 // Check row count
@@ -191,7 +190,7 @@ class DeckIntegrationTest(
             @Test
             @DisplayName("Should insert the deck into the database with correct values")
             fun shouldInsertNewDeckIntoTheDatabaseWithCorrectValues() {
-                requestBuilder.createDeck(requestBody)
+                requestBuilder.createDeck(deckCreateDTO)
                 val expectedDeckIndex = 3
 
                 // Check row values
@@ -207,7 +206,7 @@ class DeckIntegrationTest(
             @Test
             @DisplayName("The new deck should be found when fetching")
             fun shouldInsertNewDeck() {
-                requestBuilder.createDeck(requestBody)
+                requestBuilder.createDeck(deckCreateDTO)
                 // Verify the last deck is the newly created one
                 requestBuilder.findAll()
                     .andExpect(jsonPath(("$"), Matchers.hasSize<Int>(4)))
@@ -220,19 +219,19 @@ class DeckIntegrationTest(
         @Nested
         @DisplayName("When the deck create request is invalid")
         inner class WhenDeckCreateRequestIsInvalid {
-            private val requestBody = """{"deckGroupId": 0, "name": "","description": ""}"""
+            private val deckCreateDTO = DeckCreateDTO(0, "", "")
 
             @Test
             @DisplayName("Should return the HTTP status code BAD REQUEST")
             fun shouldReturnHttpStatusCodeBadRequest() {
-                requestBuilder.createDeck(requestBody)
+                requestBuilder.createDeck(deckCreateDTO)
                     .andExpect(status().isBadRequest)
             }
 
             @Test
             @DisplayName("Should return validation error response body")
             fun shouldReturnValidationErrorResponse() {
-                requestBuilder.createDeck(requestBody)
+                requestBuilder.createDeck(deckCreateDTO)
                     .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
                     .andExpect(jsonPath("$.message").value(Matchers.containsString("Validation failed")))
                     .andExpect(jsonPath("$.fieldErrors[?(@.property == 'deckGroupId')].message").value("The deck group ID should be positive number."))
@@ -249,20 +248,19 @@ class DeckIntegrationTest(
         @DisplayName("When the deck update request is valid")
         inner class WhenDeckUpdateRequestIsValid {
             private val deckUpdateDTO = DeckUpdateDTO(1, 1, "Deck updated", "Description updated")
-            private val requestBody = objectMapper.writeValueAsString(deckUpdateDTO)
             private val rowIndexOfDeck = 0
 
             @Test
             @DisplayName("Should return the HTTP status code OK")
             fun shouldReturnHttpStatusCodeNoContent() {
-                requestBuilder.updateDeck(requestBody)
+                requestBuilder.updateDeck(deckUpdateDTO)
                     .andExpect(status().isOk)
             }
 
             @Test
             @DisplayName("Should update the deck in the database")
             fun shouldUpdateDeckIntoTheDatabase() {
-                requestBuilder.updateDeck(requestBody)
+                requestBuilder.updateDeck(deckUpdateDTO)
 
                 // Verify data is updated in db
                 Assertions.assertThat(DECK_TABLE).row(rowIndexOfDeck)
@@ -277,7 +275,7 @@ class DeckIntegrationTest(
             @Test
             @DisplayName("The updated deck should be found when fetching by ID")
             fun shouldUpdateExistingDeck() {
-                requestBuilder.updateDeck(requestBody)
+                requestBuilder.updateDeck(deckUpdateDTO)
                 // Verify the deck is updated
                 requestBuilder.findById(deckUpdateDTO.id)
                     .andExpect(jsonPath("$.deckGroupId").value(deckUpdateDTO.deckGroupId))
@@ -289,19 +287,19 @@ class DeckIntegrationTest(
         @Nested
         @DisplayName("When the deck update request is invalid")
         inner class WhenDeckUpdateRequestIsInvalid {
-            private val requestBody = """{"id": 0, "deckGroupId": 0, "name": "", "description": ""}"""
+            private val deckUpdateDTO = DeckUpdateDTO(0, 0, "", "")
 
             @Test
             @DisplayName("Should return the HTTP status code BAD REQUEST")
             fun shouldReturnHttpStatusCodeBadRequest() {
-                requestBuilder.updateDeck(requestBody)
+                requestBuilder.updateDeck(deckUpdateDTO)
                     .andExpect(status().isBadRequest)
             }
 
             @Test
             @DisplayName("Should return validation error response body")
             fun shouldReturnValidationErrorResponse() {
-                requestBuilder.updateDeck(requestBody)
+                requestBuilder.updateDeck(deckUpdateDTO)
                     .andExpect(jsonPath("$.fieldErrors[?(@.property == 'id')].message").value("The deck ID should be positive number."))
                     .andExpect(jsonPath("$.fieldErrors[?(@.property == 'deckGroupId')].message").value("The deck group ID should be positive number."))
                     .andExpect(jsonPath("$.fieldErrors[?(@.property == 'name')].message").value("The deck name is required."))
@@ -311,19 +309,19 @@ class DeckIntegrationTest(
         @Nested
         @DisplayName("When the deck with given id does not exist")
         inner class WhenDeckWithGivenIdDoesNotExist {
-            private val requestBody = """{"id": 15, "deckGroupId": 1, "name": "Deck 1", "description": "Description 1"}"""
+            private val deckUpdateDTO = DeckUpdateDTO(15, 1, "Deck updated", "Description updated")
 
             @Test
             @DisplayName("Should return the HTTP status code NOT FOUND")
             fun shouldReturnHttpStatusCodeNotFound() {
-                requestBuilder.updateDeck(requestBody)
+                requestBuilder.updateDeck(deckUpdateDTO)
                     .andExpect(status().isNotFound)
             }
 
             @Test
             @DisplayName("Should return error response body")
             fun shouldReturnErrorResponse() {
-                requestBuilder.updateDeck(requestBody)
+                requestBuilder.updateDeck(deckUpdateDTO)
                     .andExpect(jsonPath("$.message").value("Deck with id 15 not found."))
             }
         }

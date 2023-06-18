@@ -28,7 +28,7 @@ class FlashcardControllerTest(
     @MockBean
     private lateinit var flashcardRepository: FlashcardRepository
 
-    private var requestBuilder = FlashcardHttpRequestBuilder(mockMvc)
+    private var requestBuilder = FlashcardHttpRequestBuilder(mockMvc, objectMapper)
 
     @Nested
     @DisplayName("Get all flashcards")
@@ -205,20 +205,19 @@ class FlashcardControllerTest(
                 ),
                 comment = null,
             )
-            private val requestBody = objectMapper.writeValueAsString(flashcardCreateDTO)
             private val flashcardCreate = flashcardCreateDTO.toFlashcardCreate()
 
             @Test
             @DisplayName("Should return the HTTP status code CREATED")
             fun shouldReturnHttpStatusCodeCreated() {
-                requestBuilder.createFlashcard(requestBody)
+                requestBuilder.createFlashcard(flashcardCreateDTO)
                     .andExpect(status().isCreated)
             }
 
             @Test
             @DisplayName("Should insert a new flashcard")
             fun shouldInsertNewFlashcard() {
-                requestBuilder.createFlashcard(requestBody)
+                requestBuilder.createFlashcard(flashcardCreateDTO)
                 verify(flashcardRepository).insert(flashcardCreate)
             }
         }
@@ -235,19 +234,18 @@ class FlashcardControllerTest(
                 back = null,
                 comment = null,
             )
-            private val requestBody = objectMapper.writeValueAsString(flashcardCreateDTO)
 
             @Test
             @DisplayName("Should return the HTTP status code BAD REQUEST")
             fun shouldReturnHttpStatusCodeBadRequest() {
-                requestBuilder.createFlashcard(requestBody)
+                requestBuilder.createFlashcard(flashcardCreateDTO)
                     .andExpect(status().isBadRequest)
             }
 
             @Test
             @DisplayName("Should return validation error response body")
             fun shouldReturnValidationErrorResponse() {
-                requestBuilder.createFlashcard(requestBody)
+                requestBuilder.createFlashcard(flashcardCreateDTO)
                     .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
                     .andExpect(jsonPath("$.message").value(Matchers.containsString("Validation failed")))
                     .andExpect(jsonPath("$.fieldErrors[0].message").value("The deck ID should be positive number."))
@@ -280,7 +278,6 @@ class FlashcardControllerTest(
                 comment = "Updated comment",
                 cardTypeId = 1,
             )
-            private val requestBody = objectMapper.writeValueAsString(flashcardUpdateDTO)
             private val flashcardUpdate = flashcardUpdateDTO.toFlashcardUpdate()
 
             @BeforeEach
@@ -291,14 +288,14 @@ class FlashcardControllerTest(
             @Test
             @DisplayName("Should return the HTTP status code OK")
             fun shouldReturnHttpStatusCodeNoContent() {
-                requestBuilder.updateFlashcard(requestBody)
+                requestBuilder.updateFlashcard(flashcardUpdateDTO)
                     .andExpect(status().isOk)
             }
 
             @Test
             @DisplayName("Should update the existing flashcard")
             fun shouldUpdateExistingFlashcard() {
-                requestBuilder.updateFlashcard(requestBody)
+                requestBuilder.updateFlashcard(flashcardUpdateDTO)
                 verify(flashcardRepository).update(flashcardUpdate)
             }
         }
@@ -319,19 +316,18 @@ class FlashcardControllerTest(
                 comment = null,
                 cardTypeId = 1,
             )
-            private val requestBody = objectMapper.writeValueAsString(flashcardUpdateDTO)
 
             @Test
             @DisplayName("Should return the HTTP status code BAD REQUEST")
             fun shouldReturnHttpStatusCodeBadRequest() {
-                requestBuilder.updateFlashcard(requestBody)
+                requestBuilder.updateFlashcard(flashcardUpdateDTO)
                     .andExpect(status().isBadRequest)
             }
 
             @Test
             @DisplayName("Should return validation error response body")
             fun shouldReturnValidationErrorResponse() {
-                requestBuilder.updateFlashcard(requestBody)
+                requestBuilder.updateFlashcard(flashcardUpdateDTO)
                     .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
                     .andExpect(jsonPath("$.message").value(Matchers.containsString("Validation failed")))
                     .andExpect(jsonPath("$.fieldErrors[?(@.property == 'id')].message").value("The card ID should be positive number."))
@@ -355,7 +351,6 @@ class FlashcardControllerTest(
                 comment = "Updated comment",
                 cardTypeId = 1,
             )
-            private val requestBody = objectMapper.writeValueAsString(flashcardUpdateDTO)
             private val flashcardUpdate = flashcardUpdateDTO.toFlashcardUpdate()
 
             @BeforeEach
@@ -366,14 +361,14 @@ class FlashcardControllerTest(
             @Test
             @DisplayName("Should return HTTP status code NOT FOUND")
             fun shouldReturnHttpStatusCodeNotFound() {
-                requestBuilder.updateFlashcard(requestBody)
+                requestBuilder.updateFlashcard(flashcardUpdateDTO)
                     .andExpect(status().isNotFound)
             }
 
             @Test
             @DisplayName("Should return error response body")
             fun shouldReturnErrorResponse() {
-                requestBuilder.updateFlashcard(requestBody)
+                requestBuilder.updateFlashcard(flashcardUpdateDTO)
                     .andExpect(jsonPath("$.message").value("Flashcard with id 1 not found."))
             }
         }

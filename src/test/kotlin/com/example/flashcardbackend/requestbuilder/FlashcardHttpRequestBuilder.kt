@@ -1,5 +1,8 @@
 package com.example.flashcardbackend.requestbuilder
 
+import com.example.flashcardbackend.flashcard.FlashcardCreateDTO
+import com.example.flashcardbackend.flashcard.FlashcardUpdateDTO
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.ResultActions
@@ -8,7 +11,10 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 
-class FlashcardHttpRequestBuilder(private val mockMvc: MockMvc) {
+class FlashcardHttpRequestBuilder(
+    private val mockMvc: MockMvc,
+    private val objectMapper: ObjectMapper,
+) {
 
     @Throws(Exception::class)
     fun findAll(): ResultActions {
@@ -21,7 +27,8 @@ class FlashcardHttpRequestBuilder(private val mockMvc: MockMvc) {
     }
 
     @Throws(Exception::class)
-    fun createFlashcard(requestBody: String): ResultActions {
+    fun createFlashcard(flashcardCreateDTO: FlashcardCreateDTO): ResultActions {
+        val requestBody = objectMapper.writeValueAsString(flashcardCreateDTO)
         return mockMvc.perform(
             post("/flashcards")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -30,7 +37,8 @@ class FlashcardHttpRequestBuilder(private val mockMvc: MockMvc) {
     }
 
     @Throws(Exception::class)
-    fun updateFlashcard(requestBody: String): ResultActions {
+    fun updateFlashcard(flashcardUpdateDTO: FlashcardUpdateDTO): ResultActions {
+        val requestBody = objectMapper.writeValueAsString(flashcardUpdateDTO)
         return mockMvc.perform(
             put("/flashcards")
                 .contentType(MediaType.APPLICATION_JSON)

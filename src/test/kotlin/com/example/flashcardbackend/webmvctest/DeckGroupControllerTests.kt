@@ -30,7 +30,7 @@ class DeckGroupControllerTests(
     @MockBean
     private lateinit var deckGroupRepository: DeckGroupRepository
 
-    private var requestBuilder = DeckGroupHttpRequestBuilder(mockMvc)
+    private var requestBuilder = DeckGroupHttpRequestBuilder(mockMvc, objectMapper)
 
     @Nested
     @DisplayName("Find all deck groups")
@@ -196,8 +196,8 @@ class DeckGroupControllerTests(
         @Nested
         @DisplayName("When deck group is created successfully")
         inner class WhenDeckGroupIsCreatedSuccessfully {
-            private val requestBody = """{"name": "Finnished", "description": "Learn Finnish with Finnished"}"""
-            private val deckGroupCreate = DeckGroupCreate("Finnished", "Learn Finnish with Finnished")
+            private val deckGroupCreateDTO = DeckGroupCreateDTO("Finnished", "Learn Finnish with Finnished")
+            private val deckGroupCreate = deckGroupCreateDTO.toDeckGroupCreate()
 
             @BeforeEach
             fun setUp() {
@@ -207,14 +207,14 @@ class DeckGroupControllerTests(
             @Test
             @DisplayName("Should return the HTTP status code CREATED")
             fun shouldReturnHttpStatusCodeCreated() {
-                requestBuilder.createDeckGroup(requestBody)
+                requestBuilder.createDeckGroup(deckGroupCreateDTO)
                     .andExpect(status().isCreated)
             }
 
             @Test
             @DisplayName("Should insert the deck group in the repository")
             fun shouldInsertDeckGroupInTheRepository() {
-                requestBuilder.createDeckGroup(requestBody)
+                requestBuilder.createDeckGroup(deckGroupCreateDTO)
                 verify(deckGroupRepository).insert(deckGroupCreate)
             }
         }
@@ -222,19 +222,19 @@ class DeckGroupControllerTests(
         @Nested
         @DisplayName("When deck group name is blank")
         inner class WhenDeckGroupNameIsBlank {
-            private val requestBody = """{"name": "", "description": "A new deck group."}"""
+            private val deckGroupCreateDTO = DeckGroupCreateDTO("", "A new deck group.")
 
             @Test
             @DisplayName("Should return the HTTP status code BAD REQUEST")
             fun shouldReturnHttpStatusCodeBadRequest() {
-                requestBuilder.createDeckGroup(requestBody)
+                requestBuilder.createDeckGroup(deckGroupCreateDTO)
                     .andExpect(status().isBadRequest)
             }
 
             @Test
             @DisplayName("Should return a JSON error message")
             fun shouldReturnJsonErrorMessage() {
-                requestBuilder.createDeckGroup(requestBody)
+                requestBuilder.createDeckGroup(deckGroupCreateDTO)
                     .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
                     .andExpect(jsonPath("$.message").value(containsString("Validation failed")))
                     .andExpect(jsonPath("$.fieldErrors[0].message").value("The deck group name is required."))
@@ -249,8 +249,8 @@ class DeckGroupControllerTests(
         @Nested
         @DisplayName("When deck group is updated successfully")
         inner class WhenDeckGroupIsUpdatedSuccessfully {
-            private val requestBody = """{"id": 1, "name": "Updated Deck Group", "description": "An updated deck group."}"""
-            private val deckGroupUpdate = DeckGroupUpdate(1, "Updated Deck Group", "An updated deck group.")
+            private val deckGroupUpdateDTO = DeckGroupUpdateDTO(1, "Updated Deck Group", "An updated deck group.")
+            private val deckGroupUpdate = deckGroupUpdateDTO.toDeckGroupUpdate()
 
             @BeforeEach
             fun setUp() {
@@ -260,14 +260,14 @@ class DeckGroupControllerTests(
             @Test
             @DisplayName("Should return the HTTP status code OK")
             fun shouldReturnHttpStatusCodeOk() {
-                requestBuilder.updateDeckGroup(requestBody)
+                requestBuilder.updateDeckGroup(deckGroupUpdateDTO)
                     .andExpect(status().isOk)
             }
 
             @Test
             @DisplayName("Should update the deck group in the repository")
             fun shouldUpdateDeckGroupInTheRepository() {
-                requestBuilder.updateDeckGroup(requestBody)
+                requestBuilder.updateDeckGroup(deckGroupUpdateDTO)
 
                 verify(deckGroupRepository).update(deckGroupUpdate)
             }
@@ -276,19 +276,19 @@ class DeckGroupControllerTests(
         @Nested
         @DisplayName("When deck group name is blank")
         inner class WhenDeckGroupNameIsBlank {
-            private val requestBody = """{"id": 1, "name": "", "description": "An updated deck group."}"""
+            private val deckGroupUpdateDTO = DeckGroupUpdateDTO(1, "", "An updated deck group.")
 
             @Test
             @DisplayName("Should return the HTTP status code BAD REQUEST")
             fun shouldReturnHttpStatusCodeBadRequest() {
-                requestBuilder.updateDeckGroup(requestBody)
+                requestBuilder.updateDeckGroup(deckGroupUpdateDTO)
                     .andExpect(status().isBadRequest)
             }
 
             @Test
             @DisplayName("Should return a JSON error message")
             fun shouldReturnJsonErrorMessage() {
-                requestBuilder.updateDeckGroup(requestBody)
+                requestBuilder.updateDeckGroup(deckGroupUpdateDTO)
                     .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
                     .andExpect(jsonPath("$.message").value(containsString("Validation failed")))
                     .andExpect(jsonPath("$.fieldErrors[0].message").value("The deck group name is required."))
@@ -298,8 +298,8 @@ class DeckGroupControllerTests(
         @Nested
         @DisplayName("When Deck Group with given id does not exist")
         inner class WhenDeckGroupWithGivenIdDoesNotExist {
-            private val requestBody = """{"id": 17, "name": "Deck Group 1", "description": "Description 1"}"""
-            private val deckGroupUpdate = DeckGroupUpdate(17, "Deck Group 1", "Description 1")
+            private val deckGroupUpdateDTO = DeckGroupUpdateDTO(17, "Deck Group 1", "Description 1")
+            private val deckGroupUpdate = deckGroupUpdateDTO.toDeckGroupUpdate()
 
             @BeforeEach
             fun setup() {
@@ -309,14 +309,14 @@ class DeckGroupControllerTests(
             @Test
             @DisplayName("Should return HTTP status code Not Found")
             fun shouldReturnHttpStatusCodeNotFound() {
-                requestBuilder.updateDeckGroup(requestBody)
+                requestBuilder.updateDeckGroup(deckGroupUpdateDTO)
                     .andExpect(status().isNotFound)
             }
 
             @Test
             @DisplayName("Should return error message")
             fun shouldReturnErrorMessage() {
-                requestBuilder.updateDeckGroup(requestBody)
+                requestBuilder.updateDeckGroup(deckGroupUpdateDTO)
                     .andExpect(jsonPath("$.message").value("Deck group with id 17 not found."))
             }
         }

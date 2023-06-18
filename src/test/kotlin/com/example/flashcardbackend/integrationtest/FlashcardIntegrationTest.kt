@@ -34,7 +34,7 @@ class FlashcardIntegrationTest(
     @Autowired private val dataSource: DataSource,
 ) {
 
-    private var requestBuilder = FlashcardHttpRequestBuilder(mockMvc)
+    private var requestBuilder = FlashcardHttpRequestBuilder(mockMvc, objectMapper)
 
     private val FLASHCARD_TABLE = Table(dataSource, "flashcard")
     private val FLASHCARD_CONTENT_TABLE = Table(dataSource, "card_content")
@@ -181,19 +181,18 @@ class FlashcardIntegrationTest(
                 ),
                 comment = null,
             )
-            private val requestBody = objectMapper.writeValueAsString(flashcardCreateDTO)
 
             @Test
             @DisplayName("Should return the HTTP status code CREATED")
             fun shouldReturnHttpStatusCodeCreated() {
-                requestBuilder.createFlashcard(requestBody)
+                requestBuilder.createFlashcard(flashcardCreateDTO)
                     .andExpect(status().isCreated)
             }
 
             @Test
             @DisplayName("Should insert the new flashcard into the database")
             fun shouldInsertNewFlashcardIntoTheDatabase() {
-                requestBuilder.createFlashcard(requestBody)
+                requestBuilder.createFlashcard(flashcardCreateDTO)
                 val expectedCardCount = 5 // There were already 4 cards in DB, plus the new one should be 5
 
                 // Check row count
@@ -203,7 +202,7 @@ class FlashcardIntegrationTest(
             @Test
             @DisplayName("Should insert the new flashcard content into the database")
             fun shouldInsertNewFlashcardContentIntoTheDatabase() {
-                requestBuilder.createFlashcard(requestBody)
+                requestBuilder.createFlashcard(flashcardCreateDTO)
                 val expectedCardContentCount = 10
 
                 // Check row count
@@ -213,7 +212,7 @@ class FlashcardIntegrationTest(
             @Test
             @DisplayName("Should insert the new flashcard into the database with correct values")
             fun shouldInsertNewFlashcardIntoTheDatabaseWithCorrectValues() {
-                requestBuilder.createFlashcard(requestBody)
+                requestBuilder.createFlashcard(flashcardCreateDTO)
                 val expectedCardId = 5
                 val expectedCardIndex = 4
 
@@ -228,7 +227,7 @@ class FlashcardIntegrationTest(
             @Test
             @DisplayName("Should insert the new flashcard content into the database with correct values")
             fun shouldInsertNewFlashcardContentIntoTheDatabaseWithCorrectValues() {
-                requestBuilder.createFlashcard(requestBody)
+                requestBuilder.createFlashcard(flashcardCreateDTO)
                 val expectedFrontContentIndex = 8
                 val expectedBackContentIndex = 9
 
@@ -249,7 +248,7 @@ class FlashcardIntegrationTest(
             @Test
             @DisplayName("The new flashcard should be found when fetching")
             fun shouldInsertNewFlashcard() {
-                requestBuilder.createFlashcard(requestBody)
+                requestBuilder.createFlashcard(flashcardCreateDTO)
 
                 // Verify the last flashcard is the newly created one
                 val expectedId = 5
@@ -262,7 +261,7 @@ class FlashcardIntegrationTest(
             @Test
             @DisplayName("The new flashcard information should be correct when fetching")
             fun shouldInsertInformationOfNewFlashcard() {
-                requestBuilder.createFlashcard(requestBody)
+                requestBuilder.createFlashcard(flashcardCreateDTO)
 
                 // Verify the flashcard content
                 val expectedId = 5
@@ -291,19 +290,18 @@ class FlashcardIntegrationTest(
                 back = null,
                 comment = null,
             )
-            private val requestBody = objectMapper.writeValueAsString(flashcardCreateDTO)
 
             @Test
             @DisplayName("Should return the HTTP status code BAD REQUEST")
             fun shouldReturnHttpStatusCodeBadRequest() {
-                requestBuilder.createFlashcard(requestBody)
+                requestBuilder.createFlashcard(flashcardCreateDTO)
                     .andExpect(status().isBadRequest)
             }
 
             @Test
             @DisplayName("Should return validation error response body")
             fun shouldReturnValidationErrorResponse() {
-                requestBuilder.createFlashcard(requestBody)
+                requestBuilder.createFlashcard(flashcardCreateDTO)
                     .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
                     .andExpect(jsonPath("$.message").value(Matchers.containsString("Validation failed")))
                     .andExpect(jsonPath("$.fieldErrors[0].message").value("The deck ID should be positive number."))
@@ -336,7 +334,6 @@ class FlashcardIntegrationTest(
                 comment = "Updated comment",
                 cardTypeId = 1,
             )
-            private val requestBody = objectMapper.writeValueAsString(flashcardUpdateDTO)
             private val rowIndexOfFlashcard = 0
             private val rowIndexOfFrontContent = 0
             private val rowIndexOfBackContent = 1
@@ -344,14 +341,14 @@ class FlashcardIntegrationTest(
             @Test
             @DisplayName("Should return the HTTP status code OK")
             fun shouldReturnHttpStatusCodeNoContent() {
-                requestBuilder.updateFlashcard(requestBody)
+                requestBuilder.updateFlashcard(flashcardUpdateDTO)
                     .andExpect(status().isOk)
             }
 
             @Test
             @DisplayName("Should update the flashcard in the database")
             fun shouldUpdateFlashcardInTheDatabase() {
-                requestBuilder.updateFlashcard(requestBody)
+                requestBuilder.updateFlashcard(flashcardUpdateDTO)
 
                 // Verify data is updated in db
                 Assertions.assertThat(FLASHCARD_TABLE).row(rowIndexOfFlashcard)
@@ -364,7 +361,7 @@ class FlashcardIntegrationTest(
             @Test
             @DisplayName("Should update the flashcard content in the database")
             fun shouldUpdateFlashcardContentInTheDatabase() {
-                requestBuilder.updateFlashcard(requestBody)
+                requestBuilder.updateFlashcard(flashcardUpdateDTO)
 
                 // Verify data is updated in db
                 Assertions.assertThat(FLASHCARD_CONTENT_TABLE).row(rowIndexOfFrontContent)
@@ -383,7 +380,7 @@ class FlashcardIntegrationTest(
             @Test
             @DisplayName("The updated flashcard should be found when fetching by ID")
             fun shouldUpdateExistingFlashcard() {
-                requestBuilder.updateFlashcard(requestBody)
+                requestBuilder.updateFlashcard(flashcardUpdateDTO)
                 // Verify it is updated
                 requestBuilder.findById(flashcardUpdateDTO.id)
                     .andExpect(jsonPath("$.deckId").value(flashcardUpdateDTO.deckId))
@@ -419,14 +416,14 @@ class FlashcardIntegrationTest(
             @Test
             @DisplayName("Should return the HTTP status code BAD REQUEST")
             fun shouldReturnHttpStatusCodeBadRequest() {
-                requestBuilder.updateFlashcard(requestBody)
+                requestBuilder.updateFlashcard(flashcardUpdateDTO)
                     .andExpect(status().isBadRequest)
             }
 
             @Test
             @DisplayName("Should return validation error response body")
             fun shouldReturnValidationErrorResponse() {
-                requestBuilder.updateFlashcard(requestBody)
+                requestBuilder.updateFlashcard(flashcardUpdateDTO)
                     .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
                     .andExpect(jsonPath("$.message").value(Matchers.containsString("Validation failed")))
                     .andExpect(jsonPath("$.fieldErrors[?(@.property == 'id')].message").value("The card ID should be positive number."))
@@ -455,14 +452,14 @@ class FlashcardIntegrationTest(
             @Test
             @DisplayName("Should return HTTP status code NOT FOUND")
             fun shouldReturnHttpStatusCodeNotFound() {
-                requestBuilder.updateFlashcard(requestBody)
+                requestBuilder.updateFlashcard(flashcardUpdateDTO)
                     .andExpect(status().isNotFound)
             }
 
             @Test
             @DisplayName("Should return error response body")
             fun shouldReturnErrorResponse() {
-                requestBuilder.updateFlashcard(requestBody)
+                requestBuilder.updateFlashcard(flashcardUpdateDTO)
                     .andExpect(jsonPath("$.message").value("Flashcard with id 50 not found."))
             }
         }
